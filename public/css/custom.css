@@ -1,0 +1,105 @@
+.bd-callout {
+    padding: 1.25rem;
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+    border: 1px solid #eee;
+    border-left-width: .25rem;
+    border-radius: .25rem
+}
+
+.bd-callout h4 {
+    margin-top: 0;
+    margin-bottom: .25rem
+}
+
+.bd-callout p:last-child {
+    margin-bottom: 0
+}
+
+.bd-callout code {
+    border-radius: .25rem
+}
+
+.bd-callout+.bd-callout {
+    margin-top: -.25rem
+}
+
+.bd-callout-info {
+    border-left-color: #70B0B6
+}
+
+.bd-callout-info h4 {
+    color: #70B0B6;
+}
+
+.bd-callout-warning {
+    border-left-color: #E2CD6D
+}
+
+.bd-callout-warning h4 {
+    color: #E2CD6D
+}
+
+.bd-callout-danger {
+    border-left-color: #E86F68
+}
+
+.bd-callout-danger h4 {
+    color: #E86F68
+}
+
+.bd-callout-success {
+    border-left-color: #83B799
+}
+
+.bd-callout-success h4 {
+    color: #83B799
+}
+
+.bd-callout-primary {
+    border-left-color: #1D3F60
+}
+
+.bd-callout-primary h4 {
+    color: #1D3F60
+}
+
+.bd-callout-secondary {
+    border-left-color: #C2B28F
+}
+
+.bd-callout-secondary h4 {
+    color: #C2B28F
+}
+
+.bd-callout-purple {
+    border-left-color: #96576D
+}
+
+.bd-callout-purple h4 {
+    color: #96576D
+}
+
+#back-to-top {
+    display: none; /* Hidden by default */
+    position: fixed; /* Fixed/sticky position */
+    bottom: 20px; /* Place the button at the bottom of the page */
+    right: 30px; /* Place the button 30px from the right */
+    z-index: 99; /* Make sure it does not overlap */
+    cursor: pointer; /* Add a mouse pointer on hover */
+}
+#main-alert {
+    display: none; /* Hidden by default */
+    position: fixed; /* Fixed/sticky position */         
+    top: 80px;
+    z-index: 99; /* Make sure it does not overlap */
+    cursor: pointer; /* Add a mouse pointer on hover */
+}
+
+#loading {
+    display: none; /* Hidden by default */
+    position: fixed; /* Fixed/sticky position */    
+    top: 80px; /* Place the button 30px from the right */
+    z-index: 99; /* Make sure it does not overlap */
+    cursor: pointer; /* Add a mouse pointer on hover */
+}

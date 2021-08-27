@@ -1,0 +1,26 @@
+// Fonts
+@import url('https://fonts.googleapis.com/css?family=Nunito');
+// (Required) Import Bootstrap
+@import "variables";
+$primary: #1D3F60;
+$secondary: #C2B28F;
+$success: #83B799;
+$danger: #E86F68;
+$warning: #E2CD6D;
+$info: #70B0B6;
+$dark: #272324;
+$light: #F2F0E3;
+// $light: #E4D8B4;
+$purple: #96576D;
+$theme-colors: ( primary: $primary,
+secondary: $secondary,
+success: $success,
+danger: $danger,
+warning: $warning,
+info: $info,
+dark: $dark,
+light: $light,
+"purple": $purple,
+);
+// Bootstrap
+@import '~bootstrap/scss/bootstrap';
