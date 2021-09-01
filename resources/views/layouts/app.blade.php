@@ -2,14 +2,14 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    
+
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ config('app.name', 'TeeJolly') }}</title>
-    
+
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
@@ -43,6 +43,9 @@
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav mr-auto">
                         <li class="nav-item">
+                            <a class="nav-link" href="{{ url('dashboard') }}">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{{ url('mockup') }}">mockups</a>
                         </li>
 
@@ -53,7 +56,7 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url('collection') }}">collections</a>
                         </li>
-                        
+
                         @if(Auth::user()->isSeller())
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url('etsy') }}">shops</a>
@@ -65,7 +68,7 @@
                             <a class="nav-link" href="{{ url('etsy/statistic') }}">statistics</a>
                         </li>
                         @endif
-                        
+
                         @if(Auth::user()->isSeller())
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">amazon</a>
@@ -85,7 +88,7 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('login') }}">{{ __('login') }}</a>
                             </li>
-                            
+
                             @if (Route::has('register'))
                                 <li class="nav-item">
                                     <a class="nav-link" href="{{ route('register') }}">{{ __('register') }}</a>
@@ -148,7 +151,7 @@
 
             // When the user clicks on the button, scroll to the top of the document
             function topFunction() {
-                document.body.scrollTop = 0; // For Chrome, Safari and Opera 
+                document.body.scrollTop = 0; // For Chrome, Safari and Opera
                 document.documentElement.scrollTop = 0; // For IE and Firefox
             }
 
@@ -163,8 +166,8 @@
             }
             function hideLoading() {
                 $('#loading').fadeOut("fast");
-            }          
-        </script>        
+            }
+        </script>
     </div>
     @if (isset($message))
         <script language="javascript">showAlert("{{ $message }}");</script>

@@ -23,6 +23,9 @@ Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
 
+Route::get('/dashboard', 'DashboardController@index');
+Route::get('dashboard/getStatistics', 'DashboardController@getStatistics');
+
 Route::post('user/updateSetting', 'UserController@updateSetting');
 Route::get('user/profile', 'UserController@profile');
 Route::post('user/showUserModal', 'UserController@showUserModal');
