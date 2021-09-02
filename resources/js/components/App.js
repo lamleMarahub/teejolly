@@ -126,6 +126,8 @@ const App = () => {
     })
   }
 
+  console.log('statistic=', statistic)
+
   return (
     <BrowserRouter>
       <div className="container">
