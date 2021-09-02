@@ -22,25 +22,10 @@ class DashboardController extends Controller
         $this->pagesize = env('PAGINATION_PAGESIZE', 40);
     }
 
-    private function getAmazonStatistics(Request $request, $startDate, $endDate) {
+    private function getAmazonStatistics(Request $request, $startDate, $endDate, $owner_id) {
         if (!(!$request->has('platform') || ($request->platform == '' || $request->platform == 'amazon'))) {
             return [];
         }
-
-        $owner_id = $request->user()->id;
-
-        // if (!$request->has('owner_id')) {
-        //     $owner_condition = "=";
-        //     $owner_id = $request->user()->id;
-        // } elseif ($request->owner_id == 0) {
-        //     $owner_condition = ">";
-        //     $owner_id = 0;
-        // } else {
-        //     $owner_condition = "=";
-        //     $owner_id = $request->owner_id;
-        // }
-
-        // $users = User::withTrashed()->orderBy('name','ASC')->get()->keyBy('id');
 
         $sql = "SELECT";
         $sql .= " DATE(FROM_UNIXTIME(a.amz_order_date)) AS date,";
@@ -52,7 +37,8 @@ class DashboardController extends Controller
         $sql .= " SUM(a.fulfillment_cost) total_cost";
         $sql .= " FROM orders a, order_items b";
         $sql .= " WHERE";
-        $sql .= " a.owner_id=?";
+        // $sql .= " a.owner_id=?";
+        $sql .= " ('{$owner_id}'='' OR a.owner_id=?)";
         $sql .= " AND DATE(FROM_UNIXTIME(a.amz_order_date)) BETWEEN ? AND ?";
         $sql .= " AND a.deleted_at IS NULL";
         $sql .= " AND a.id=b.order_id";
@@ -65,12 +51,10 @@ class DashboardController extends Controller
         return $results;
     }
 
-    private function getEtsyStatistics(Request $request, $startDate, $endDate) {
+    private function getEtsyStatistics(Request $request, $startDate, $endDate, $owner_id) {
         if (!(!$request->has('platform') || ($request->platform == '' || $request->platform == 'etsy'))) {
             return [];
         }
-
-        $owner_id = $request->user()->id;
 
         $sql = "SELECT";
         $sql .= " DATE(FROM_UNIXTIME(a.creation_tsz)) AS date,";
@@ -82,7 +66,8 @@ class DashboardController extends Controller
         $sql .= " SUM(a.fulfillment_cost) total_cost";
         $sql .= " FROM etsy_orders a";
         $sql .= " WHERE";
-        $sql .= " a.owner_id=?";
+        // $sql .= " a.owner_id=?";
+        $sql .= " ('{$owner_id}'='' OR a.owner_id=?)";
         $sql .= " AND DATE(FROM_UNIXTIME(a.creation_tsz)) BETWEEN ? AND ?";
         $sql .= " AND a.deleted_at IS NULL";
         $sql .= " GROUP BY";
@@ -95,9 +80,17 @@ class DashboardController extends Controller
     }
 
     public function getStatistics(Request $request) {
-        error_log('$request->platform=' . $request->platform);
-        error_log('$request->date_from=' . $request->date_from);
-        error_log('$request->date_to=' . $request->date_to);
+        // error_log('$request->platform=' . $request->platform);
+        // error_log('$request->user_id=' . $request->user_id);
+        // error_log('$request->date_from=' . $request->date_from);
+        // error_log('$request->date_to=' . $request->date_to);
+
+        if ($request->has('user_id'))
+        {
+          $owner_id = $request->user_id ? $request->user_id : '';
+        } else {
+          $owner_id = $request->user()->id;
+        }
 
         if (!$request->has('date_from')) {
           $startDate = Carbon::now()->startOfMonth();
@@ -107,15 +100,13 @@ class DashboardController extends Controller
           $endDate = Carbon::parse($request->date_to);
         }
 
-        $amazonStatistics = $this->getAmazonStatistics($request, $startDate, $endDate);
-        $etsyStatistics = $this->getEtsyStatistics($request, $startDate, $endDate);
-
-        $owner_id = $request->user()->id;
+        $amazonStatistics = $this->getAmazonStatistics($request, $startDate, $endDate, $owner_id);
+        $etsyStatistics = $this->getEtsyStatistics($request, $startDate, $endDate, $owner_id);
 
         $sql = "SELECT b.asin, COUNT(1) count_product";
         $sql .= " FROM orders a, order_items b";
         $sql .= " WHERE";
-        $sql .= " a.owner_id=?";
+        $sql .= " ('{$owner_id}'='' OR a.owner_id=?)";
         $sql .= " AND DATE(FROM_UNIXTIME(a.amz_order_date)) BETWEEN ? AND ?";
         $sql .= " AND a.deleted_at IS NULL";
         $sql .= " AND a.id=b.order_id";
@@ -123,16 +114,17 @@ class DashboardController extends Controller
         $sql .= " ORDER BY COUNT(1) DESC";
         $sql .= " LIMIT 5";
 
+        // error_log('sql=' . $sql);
+
         $topProducts = DB::select($sql, [$owner_id, Carbon::parse($startDate), Carbon::parse($endDate)]);
+
+        // error_log('topProducts=');
+        // error_log(print_r($topProducts,true));
 
         return response()->json([
             'success' => 1,
             'message' => 'Get data success',
             'data' => [
-              // 'orders' => $orders,
-              // 'costs' => $costs,
-              // 'orders_units' => $orders_units,
-              // 'revenues' => $revenues,
               'amazon_statistics' => $amazonStatistics,
               'etsy_statistics' => $etsyStatistics,
               'top_products' => $topProducts,
@@ -140,7 +132,31 @@ class DashboardController extends Controller
         ]);
     }
 
-    public function statistic(Request $request){
+    public function getSellerList(Request $request)
+    {
+      $selllers = [];
+
+      if (!Auth::user()->isAdmin())
+      {
+          $selllers = [];
+      }
+
+      $selllers = DB::table('users')
+          ->select('id', 'name')
+          ->where('is_seller', '=', 1)
+          ->orderBy('name', 'ASC')
+          ->get();
+
+      return response()->json([
+          'success' => 1,
+          'message' => 'Get data success',
+          'data' => [
+            'sellers' => $selllers
+          ]
+      ]);
+    }
+
+    public function statistic(Request $request) {
 
         if (!$request->has('reportrange')) {
             $startDate = Carbon::now()->startOfMonth();

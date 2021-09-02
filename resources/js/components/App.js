@@ -5,16 +5,17 @@ import 'react-datepicker/dist/react-datepicker.css';
 import ReactDOM from 'react-dom';
 import { Controller, useForm } from 'react-hook-form';
 import { BrowserRouter } from 'react-router-dom';
-import OrderRevenueChart from './chart/order-revenue-chart.component';
 import { DATE_FORMAT, DATE_RANGE } from '../constants/app.constant';
 import * as dashboardService from '../services/dashboard.service';
-import { _mergeArrayByKey, _formatNumber } from '../_helper/utils';
+import { _formatNumber, _mergeArrayByKey } from '../_helper/utils';
 import './App.scss';
+import OrderRevenueChart from './chart/order-revenue-chart.component';
 
 const App = () => {
   const { register, control, handleSubmit, reset, getValues } = useForm()
   const [timeLabel, settimeLabel] = useState('Today')
   const [loading, setLoading] = useState(false)
+  const [sellerList, setSellerList] = useState([])
   const [statistic, setStatistic] = useState({
     datas: [],
     top_products: [],
@@ -34,8 +35,18 @@ const App = () => {
   useEffect(() => {
     reset({ platform: '' })
     changeDateRange(DATE_RANGE.TODAY)
-    loadData(getValues())
+    loadSellerList().then(res => {
+      loadData(getValues())
+    })
   }, [])
+
+  const loadSellerList = () => {
+    return dashboardService.getSellerList().then(res => {
+      // console.log(res.data.data.sellers)
+      setSellerList(res.data.data.sellers)
+      return res
+    })
+  }
 
   const loadData = (formdata) => {
     const postdata = {
@@ -126,67 +137,84 @@ const App = () => {
     })
   }
 
-  console.log('statistic=', statistic)
-
   return (
     <BrowserRouter>
       <div className="container">
         <div className="row">
           <div className="px-0 col-lg-9 col-md-8 left-zone">
             <div className='row'>
-              <div className='col'>
-                <label className="form-label">Platforms</label>
-                <select className="form-control" {...register('platform')}>
-                  <option value="">-- All --</option>
-                  <option value="amazon">Amazon</option>
-                  <option value="etsy">Etsy</option>
-                </select>
+              <div className='col-auto px-0'>
+                <div className='row'>
+                  <label className="form-label">Platform</label>
+                  <select className="form-control" {...register('platform')}>
+                    <option value="">-- All --</option>
+                    <option value="amazon">Amazon</option>
+                    <option value="etsy">Etsy</option>
+                  </select>
+                </div>
+                {sellerList.length > 0 && <div className='row'>
+                  <label className="form-label">Seller</label>
+                  <select className="form-control" {...register('user_id')}>
+                    <option value="">-- All --</option>
+                    {
+                      sellerList.map((item, idx) =>
+                        <option key={idx} value={item.id}>{item.name}</option>
+                      )
+                    }
+                  </select>
+                </div>}
               </div>
-              <div className='col'>
-                <label className="form-label">From</label>
-                <Controller
-                  name='date_from'
-                  control={control}
-                  render={({ field }) => <DatePicker
-                    {...field}
-                    autoComplete="off"
-                    className="form-control"
-                    dateFormat="dd/MM/yyyy"
-                    selected={field.value}
-                    onChange={data => { field.onChange(data); settimeLabel('custom') }}
-                  />}
-                />
+              <div className='col-md-8 px-0 px-lg-2'>
+                <div className='row'>
+                  <div className='col pl-0 pr-1'>
+                    <label className="form-label">From</label>
+                    <Controller
+                      name='date_from'
+                      control={control}
+                      render={({ field }) => <DatePicker
+                        {...field}
+                        autoComplete="off"
+                        className="form-control"
+                        dateFormat="dd/MM/yyyy"
+                        selected={field.value}
+                        onChange={data => { field.onChange(data); settimeLabel('custom') }}
+                      />}
+                    />
+                  </div>
+                  <div className='col pr-0 pl-1'>
+                    <label className="form-label">To</label>
+                    <Controller
+                      name='date_to'
+                      control={control}
+                      render={({ field }) => <DatePicker
+                        {...field}
+                        autoComplete="off"
+                        className="form-control"
+                        dateFormat="dd/MM/yyyy"
+                        selected={field.value}
+                        onChange={data => { field.onChange(data); settimeLabel('custom') }}
+                      />}
+                    />
+                  </div>
+                </div>
+                <div className='row'>
+                  <div className='col'>
+                    <span className='pointer text-danger' onClick={e => changeDateRange(DATE_RANGE.TODAY)}>Today</span>
+                    <span className='ml-3 pointer text-danger' onClick={e => changeDateRange(DATE_RANGE.YESTERDAY)}>Yesterday</span>
+                    <span className='ml-3 pointer text-danger' onClick={e => changeDateRange(DATE_RANGE.LAST_7_DAYS)}>Last 7 days</span>
+                    <span className='ml-3 pointer text-danger' onClick={e => changeDateRange(DATE_RANGE.LAST_30_DAYS)}>Last 30 days</span>
+                    <span className='ml-3 pointer text-danger' onClick={e => changeDateRange(DATE_RANGE.THIS_MONTH)}>This month</span>
+                    <span className='ml-3 pointer text-danger' onClick={e => changeDateRange(DATE_RANGE.LAST_MONTH)}>Last month</span>
+                  </div>
+                </div>
               </div>
-              <div className='col'>
-                <label className="form-label">To</label>
-                <Controller
-                  name='date_to'
-                  control={control}
-                  render={({ field }) => <DatePicker
-                    {...field}
-                    autoComplete="off"
-                    className="form-control"
-                    dateFormat="dd/MM/yyyy"
-                    selected={field.value}
-                    onChange={data => { field.onChange(data); settimeLabel('custom') }}
-                  />}
-                />
-              </div>
-              <div className='col-auto'>
+
+              <div className='col-auto px-0 px-md-2'>
                 <label className="form-label">&nbsp;</label>
                 <button type="button" className="form-control btn btn-primary" disabled={loading} onClick={handleSubmit(handleFilter)}>Go</button>
               </div>
             </div>
-            <div className='row'>
-              <div className='col'>
-                <span className='pointer text-danger' onClick={e => changeDateRange(DATE_RANGE.TODAY)}>Today</span>
-                <span className='ml-3 pointer text-danger' onClick={e => changeDateRange(DATE_RANGE.YESTERDAY)}>Yesterday</span>
-                <span className='ml-3 pointer text-danger' onClick={e => changeDateRange(DATE_RANGE.LAST_7_DAYS)}>Last 7 days</span>
-                <span className='ml-3 pointer text-danger' onClick={e => changeDateRange(DATE_RANGE.LAST_30_DAYS)}>Last 30 days</span>
-                <span className='ml-3 pointer text-danger' onClick={e => changeDateRange(DATE_RANGE.THIS_MONTH)}>This month</span>
-                <span className='ml-3 pointer text-danger' onClick={e => changeDateRange(DATE_RANGE.LAST_MONTH)}>Last month</span>
-              </div>
-            </div>
+
             <div className='order-chart'>
               <OrderRevenueChart datas={statistic.datas} />
             </div>

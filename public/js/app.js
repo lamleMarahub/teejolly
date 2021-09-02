@@ -98015,12 +98015,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(react_dom__WEBPACK_IMPORTED_MODULE_4__);
 /* harmony import */ var react_hook_form__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! react-hook-form */ "./node_modules/react-hook-form/dist/index.esm.js");
 /* harmony import */ var react_router_dom__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router-dom/esm/react-router-dom.js");
-/* harmony import */ var _chart_order_revenue_chart_component__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./chart/order-revenue-chart.component */ "./resources/js/components/chart/order-revenue-chart.component.js");
-/* harmony import */ var _constants_app_constant__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../constants/app.constant */ "./resources/js/constants/app.constant.js");
-/* harmony import */ var _services_dashboard_service__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../services/dashboard.service */ "./resources/js/services/dashboard.service.js");
-/* harmony import */ var _helper_utils__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../_helper/utils */ "./resources/js/_helper/utils.js");
-/* harmony import */ var _App_scss__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./App.scss */ "./resources/js/components/App.scss");
-/* harmony import */ var _App_scss__WEBPACK_IMPORTED_MODULE_11___default = /*#__PURE__*/__webpack_require__.n(_App_scss__WEBPACK_IMPORTED_MODULE_11__);
+/* harmony import */ var _constants_app_constant__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../constants/app.constant */ "./resources/js/constants/app.constant.js");
+/* harmony import */ var _services_dashboard_service__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../services/dashboard.service */ "./resources/js/services/dashboard.service.js");
+/* harmony import */ var _helper_utils__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../_helper/utils */ "./resources/js/_helper/utils.js");
+/* harmony import */ var _App_scss__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./App.scss */ "./resources/js/components/App.scss");
+/* harmony import */ var _App_scss__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(_App_scss__WEBPACK_IMPORTED_MODULE_10__);
+/* harmony import */ var _chart_order_revenue_chart_component__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./chart/order-revenue-chart.component */ "./resources/js/components/chart/order-revenue-chart.component.js");
 function _extends() { _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
@@ -98072,7 +98072,12 @@ var App = function App() {
       loading = _useState4[0],
       setLoading = _useState4[1];
 
-  var _useState5 = Object(react__WEBPACK_IMPORTED_MODULE_1__["useState"])({
+  var _useState5 = Object(react__WEBPACK_IMPORTED_MODULE_1__["useState"])([]),
+      _useState6 = _slicedToArray(_useState5, 2),
+      sellerList = _useState6[0],
+      setSellerList = _useState6[1];
+
+  var _useState7 = Object(react__WEBPACK_IMPORTED_MODULE_1__["useState"])({
     datas: [],
     top_products: [],
     count_order: 0,
@@ -98087,28 +98092,38 @@ var App = function App() {
     amazon_statistics: [],
     etsy_statistics: []
   }),
-      _useState6 = _slicedToArray(_useState5, 2),
-      statistic = _useState6[0],
-      setStatistic = _useState6[1];
+      _useState8 = _slicedToArray(_useState7, 2),
+      statistic = _useState8[0],
+      setStatistic = _useState8[1];
 
   Object(react__WEBPACK_IMPORTED_MODULE_1__["useEffect"])(function () {
     reset({
       platform: ''
     });
-    changeDateRange(_constants_app_constant__WEBPACK_IMPORTED_MODULE_8__["DATE_RANGE"].TODAY);
-    loadData(getValues());
+    changeDateRange(_constants_app_constant__WEBPACK_IMPORTED_MODULE_7__["DATE_RANGE"].TODAY);
+    loadSellerList().then(function (res) {
+      loadData(getValues());
+    });
   }, []);
+
+  var loadSellerList = function loadSellerList() {
+    return _services_dashboard_service__WEBPACK_IMPORTED_MODULE_8__["getSellerList"]().then(function (res) {
+      // console.log(res.data.data.sellers)
+      setSellerList(res.data.data.sellers);
+      return res;
+    });
+  };
 
   var loadData = function loadData(formdata) {
     var postdata = _objectSpread(_objectSpread({}, formdata), {}, {
-      date_from: Object(date_fns__WEBPACK_IMPORTED_MODULE_0__["format"])(formdata.date_from, _constants_app_constant__WEBPACK_IMPORTED_MODULE_8__["DATE_FORMAT"].yyyyMMdd),
-      date_to: Object(date_fns__WEBPACK_IMPORTED_MODULE_0__["format"])(formdata.date_to, _constants_app_constant__WEBPACK_IMPORTED_MODULE_8__["DATE_FORMAT"].yyyyMMdd)
+      date_from: Object(date_fns__WEBPACK_IMPORTED_MODULE_0__["format"])(formdata.date_from, _constants_app_constant__WEBPACK_IMPORTED_MODULE_7__["DATE_FORMAT"].yyyyMMdd),
+      date_to: Object(date_fns__WEBPACK_IMPORTED_MODULE_0__["format"])(formdata.date_to, _constants_app_constant__WEBPACK_IMPORTED_MODULE_7__["DATE_FORMAT"].yyyyMMdd)
     });
 
     var queryString = new URLSearchParams(postdata).toString();
     setLoading(true);
-    _services_dashboard_service__WEBPACK_IMPORTED_MODULE_9__["getStatistics"](queryString).then(function (res) {
-      var datas = Object(_helper_utils__WEBPACK_IMPORTED_MODULE_10__["_mergeArrayByKey"])(res.data.data.amazon_statistics, res.data.data.etsy_statistics);
+    _services_dashboard_service__WEBPACK_IMPORTED_MODULE_8__["getStatistics"](queryString).then(function (res) {
+      var datas = Object(_helper_utils__WEBPACK_IMPORTED_MODULE_9__["_mergeArrayByKey"])(res.data.data.amazon_statistics, res.data.data.etsy_statistics);
 
       var cost_amazon = res.data.data.amazon_statistics.reduce(function (total, cur) {
         return total + Number(cur.total_cost);
@@ -98161,38 +98176,38 @@ var App = function App() {
     var date_to;
 
     switch (dateRangeType) {
-      case _constants_app_constant__WEBPACK_IMPORTED_MODULE_8__["DATE_RANGE"].TODAY:
+      case _constants_app_constant__WEBPACK_IMPORTED_MODULE_7__["DATE_RANGE"].TODAY:
         date_from = Object(date_fns__WEBPACK_IMPORTED_MODULE_0__["startOfDay"])(new Date());
         date_to = Object(date_fns__WEBPACK_IMPORTED_MODULE_0__["endOfDay"])(date_from);
         settimeLabel('Today');
         break;
 
-      case _constants_app_constant__WEBPACK_IMPORTED_MODULE_8__["DATE_RANGE"].YESTERDAY:
+      case _constants_app_constant__WEBPACK_IMPORTED_MODULE_7__["DATE_RANGE"].YESTERDAY:
         date_from = Object(date_fns__WEBPACK_IMPORTED_MODULE_0__["startOfDay"])(new Date());
         date_from = Object(date_fns__WEBPACK_IMPORTED_MODULE_0__["addDays"])(date_from, -1);
         date_to = Object(date_fns__WEBPACK_IMPORTED_MODULE_0__["endOfDay"])(date_from);
         settimeLabel('Yesterday');
         break;
 
-      case _constants_app_constant__WEBPACK_IMPORTED_MODULE_8__["DATE_RANGE"].LAST_7_DAYS:
+      case _constants_app_constant__WEBPACK_IMPORTED_MODULE_7__["DATE_RANGE"].LAST_7_DAYS:
         date_to = Object(date_fns__WEBPACK_IMPORTED_MODULE_0__["endOfDay"])(new Date());
         date_from = Object(date_fns__WEBPACK_IMPORTED_MODULE_0__["startOfDay"])(Object(date_fns__WEBPACK_IMPORTED_MODULE_0__["addDays"])(date_to, -6));
         settimeLabel('Last 7 days');
         break;
 
-      case _constants_app_constant__WEBPACK_IMPORTED_MODULE_8__["DATE_RANGE"].LAST_30_DAYS:
+      case _constants_app_constant__WEBPACK_IMPORTED_MODULE_7__["DATE_RANGE"].LAST_30_DAYS:
         date_to = Object(date_fns__WEBPACK_IMPORTED_MODULE_0__["endOfDay"])(new Date());
         date_from = Object(date_fns__WEBPACK_IMPORTED_MODULE_0__["startOfDay"])(Object(date_fns__WEBPACK_IMPORTED_MODULE_0__["addDays"])(date_to, -29));
         settimeLabel('Last 30 days');
         break;
 
-      case _constants_app_constant__WEBPACK_IMPORTED_MODULE_8__["DATE_RANGE"].THIS_MONTH:
+      case _constants_app_constant__WEBPACK_IMPORTED_MODULE_7__["DATE_RANGE"].THIS_MONTH:
         date_from = Object(date_fns__WEBPACK_IMPORTED_MODULE_0__["startOfMonth"])(new Date());
         date_to = Object(date_fns__WEBPACK_IMPORTED_MODULE_0__["endOfMonth"])(date_from);
         settimeLabel('This month');
         break;
 
-      case _constants_app_constant__WEBPACK_IMPORTED_MODULE_8__["DATE_RANGE"].LAST_MONTH:
+      case _constants_app_constant__WEBPACK_IMPORTED_MODULE_7__["DATE_RANGE"].LAST_MONTH:
         date_from = Object(date_fns__WEBPACK_IMPORTED_MODULE_0__["startOfMonth"])(new Date());
         date_to = Object(date_fns__WEBPACK_IMPORTED_MODULE_0__["endOfDay"])(Object(date_fns__WEBPACK_IMPORTED_MODULE_0__["addDays"])(date_from, -1));
         date_from = Object(date_fns__WEBPACK_IMPORTED_MODULE_0__["startOfMonth"])(date_to);
@@ -98209,7 +98224,6 @@ var App = function App() {
     });
   };
 
-  console.log('statistic=', statistic);
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_6__["BrowserRouter"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "container"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
@@ -98219,10 +98233,12 @@ var App = function App() {
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "row"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
-    className: "col"
+    className: "col-auto px-0"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+    className: "row"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("label", {
     className: "form-label"
-  }, "Platforms"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("select", _extends({
+  }, "Platform"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("select", _extends({
     className: "form-control"
   }, register('platform')), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("option", {
     value: ""
@@ -98230,8 +98246,25 @@ var App = function App() {
     value: "amazon"
   }, "Amazon"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("option", {
     value: "etsy"
-  }, "Etsy"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
-    className: "col"
+  }, "Etsy"))), sellerList.length > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+    className: "row"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("label", {
+    className: "form-label"
+  }, "Seller"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("select", _extends({
+    className: "form-control"
+  }, register('user_id')), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("option", {
+    value: ""
+  }, "-- All --"), sellerList.map(function (item, idx) {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("option", {
+      key: idx,
+      value: item.id
+    }, item.name);
+  })))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+    className: "col-md-8 px-0 px-lg-2"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+    className: "row"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+    className: "col pl-0 pr-1"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("label", {
     className: "form-label"
   }, "From"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_5__["Controller"], {
@@ -98251,7 +98284,7 @@ var App = function App() {
       }));
     }
   })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
-    className: "col"
+    className: "col pr-0 pl-1"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("label", {
     className: "form-label"
   }, "To"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(react_hook_form__WEBPACK_IMPORTED_MODULE_5__["Controller"], {
@@ -98270,8 +98303,42 @@ var App = function App() {
         }
       }));
     }
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
-    className: "col-auto"
+  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+    className: "row"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+    className: "col"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("span", {
+    className: "pointer text-danger",
+    onClick: function onClick(e) {
+      return changeDateRange(_constants_app_constant__WEBPACK_IMPORTED_MODULE_7__["DATE_RANGE"].TODAY);
+    }
+  }, "Today"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("span", {
+    className: "ml-3 pointer text-danger",
+    onClick: function onClick(e) {
+      return changeDateRange(_constants_app_constant__WEBPACK_IMPORTED_MODULE_7__["DATE_RANGE"].YESTERDAY);
+    }
+  }, "Yesterday"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("span", {
+    className: "ml-3 pointer text-danger",
+    onClick: function onClick(e) {
+      return changeDateRange(_constants_app_constant__WEBPACK_IMPORTED_MODULE_7__["DATE_RANGE"].LAST_7_DAYS);
+    }
+  }, "Last 7 days"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("span", {
+    className: "ml-3 pointer text-danger",
+    onClick: function onClick(e) {
+      return changeDateRange(_constants_app_constant__WEBPACK_IMPORTED_MODULE_7__["DATE_RANGE"].LAST_30_DAYS);
+    }
+  }, "Last 30 days"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("span", {
+    className: "ml-3 pointer text-danger",
+    onClick: function onClick(e) {
+      return changeDateRange(_constants_app_constant__WEBPACK_IMPORTED_MODULE_7__["DATE_RANGE"].THIS_MONTH);
+    }
+  }, "This month"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("span", {
+    className: "ml-3 pointer text-danger",
+    onClick: function onClick(e) {
+      return changeDateRange(_constants_app_constant__WEBPACK_IMPORTED_MODULE_7__["DATE_RANGE"].LAST_MONTH);
+    }
+  }, "Last month")))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+    className: "col-auto px-0 px-md-2"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("label", {
     className: "form-label"
   }, "\xA0"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("button", {
@@ -98280,42 +98347,8 @@ var App = function App() {
     disabled: loading,
     onClick: handleSubmit(handleFilter)
   }, "Go"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
-    className: "row"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
-    className: "col"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("span", {
-    className: "pointer text-danger",
-    onClick: function onClick(e) {
-      return changeDateRange(_constants_app_constant__WEBPACK_IMPORTED_MODULE_8__["DATE_RANGE"].TODAY);
-    }
-  }, "Today"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("span", {
-    className: "ml-3 pointer text-danger",
-    onClick: function onClick(e) {
-      return changeDateRange(_constants_app_constant__WEBPACK_IMPORTED_MODULE_8__["DATE_RANGE"].YESTERDAY);
-    }
-  }, "Yesterday"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("span", {
-    className: "ml-3 pointer text-danger",
-    onClick: function onClick(e) {
-      return changeDateRange(_constants_app_constant__WEBPACK_IMPORTED_MODULE_8__["DATE_RANGE"].LAST_7_DAYS);
-    }
-  }, "Last 7 days"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("span", {
-    className: "ml-3 pointer text-danger",
-    onClick: function onClick(e) {
-      return changeDateRange(_constants_app_constant__WEBPACK_IMPORTED_MODULE_8__["DATE_RANGE"].LAST_30_DAYS);
-    }
-  }, "Last 30 days"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("span", {
-    className: "ml-3 pointer text-danger",
-    onClick: function onClick(e) {
-      return changeDateRange(_constants_app_constant__WEBPACK_IMPORTED_MODULE_8__["DATE_RANGE"].THIS_MONTH);
-    }
-  }, "This month"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("span", {
-    className: "ml-3 pointer text-danger",
-    onClick: function onClick(e) {
-      return changeDateRange(_constants_app_constant__WEBPACK_IMPORTED_MODULE_8__["DATE_RANGE"].LAST_MONTH);
-    }
-  }, "Last month"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "order-chart"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_chart_order_revenue_chart_component__WEBPACK_IMPORTED_MODULE_7__["default"], {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_chart_order_revenue_chart_component__WEBPACK_IMPORTED_MODULE_11__["default"], {
     datas: statistic.datas
   })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "summary"
@@ -98333,25 +98366,25 @@ var App = function App() {
     className: "col px-0"
   }, "Total Sales(", statistic.count_order, "):"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "col px-0 text-right"
-  }, "$", Object(_helper_utils__WEBPACK_IMPORTED_MODULE_10__["_formatNumber"])(statistic.total_revenue))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+  }, "$", Object(_helper_utils__WEBPACK_IMPORTED_MODULE_9__["_formatNumber"])(statistic.total_revenue))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "row justify-content-between"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "col px-0"
   }, "Sales Deduction(", statistic.count_cancel, "):"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "col px-0 text-right"
-  }, "$", Object(_helper_utils__WEBPACK_IMPORTED_MODULE_10__["_formatNumber"])(statistic.total_cancel))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+  }, "$", Object(_helper_utils__WEBPACK_IMPORTED_MODULE_9__["_formatNumber"])(statistic.total_cancel))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "row justify-content-between"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "col px-0"
   }, "Costs(", statistic.count_cost, "):"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "col px-0 text-right"
-  }, "$", Object(_helper_utils__WEBPACK_IMPORTED_MODULE_10__["_formatNumber"])(statistic.total_cost))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+  }, "$", Object(_helper_utils__WEBPACK_IMPORTED_MODULE_9__["_formatNumber"])(statistic.total_cost))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "row justify-content-between"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "col px-0"
   }, "Profit:"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "col px-0 text-right font-weight-bold"
-  }, "$", Object(_helper_utils__WEBPACK_IMPORTED_MODULE_10__["_formatNumber"])(statistic.total_profit))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+  }, "$", Object(_helper_utils__WEBPACK_IMPORTED_MODULE_9__["_formatNumber"])(statistic.total_profit))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "row justify-content-between border-primary border-top pt-2 mt-2"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("h4", {
     className: "col px-0"
@@ -98363,19 +98396,19 @@ var App = function App() {
     className: "col px-0"
   }, "Amazon(", statistic.count_order, "):"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "col px-0 text-right"
-  }, "$", Object(_helper_utils__WEBPACK_IMPORTED_MODULE_10__["_formatNumber"])(statistic.cost_amazon))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+  }, "$", Object(_helper_utils__WEBPACK_IMPORTED_MODULE_9__["_formatNumber"])(statistic.cost_amazon))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "row justify-content-between"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "col px-0"
   }, "Etsy(", statistic.count_order, "):"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "col px-0 text-right"
-  }, "$", Object(_helper_utils__WEBPACK_IMPORTED_MODULE_10__["_formatNumber"])(statistic.cost_etsy))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+  }, "$", Object(_helper_utils__WEBPACK_IMPORTED_MODULE_9__["_formatNumber"])(statistic.cost_etsy))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "row justify-content-between"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "col px-0"
   }, "Total:"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "col px-0 text-right font-weight-bold"
-  }, "$", Object(_helper_utils__WEBPACK_IMPORTED_MODULE_10__["_formatNumber"])(statistic.cost_amazon + statistic.cost_etsy))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("h4", {
+  }, "$", Object(_helper_utils__WEBPACK_IMPORTED_MODULE_9__["_formatNumber"])(statistic.cost_amazon + statistic.cost_etsy))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("h4", {
     className: "border-primary border-top mt-2 pt-2"
   }, "Top products:"), statistic.top_products && statistic.top_products.map(function (item, idx) {
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
@@ -98557,14 +98590,19 @@ var DATE_FORMAT = {
 /*!****************************************************!*\
   !*** ./resources/js/services/dashboard.service.js ***!
   \****************************************************/
-/*! exports provided: getStatistics */
+/*! exports provided: getStatistics, getSellerList */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getStatistics", function() { return getStatistics; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getSellerList", function() { return getSellerList; });
 function getStatistics(queryString) {
   return window.axios.get("/dashboard/getStatistics?".concat(queryString));
+}
+
+function getSellerList() {
+  return window.axios.get("/dashboard/getSellerList");
 }
 
 
