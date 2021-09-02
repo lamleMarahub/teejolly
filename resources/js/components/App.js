@@ -30,6 +30,8 @@ const App = () => {
     cost_etsy: 0,
     amazon_statistics: [],
     etsy_statistics: [],
+    amazon_count_cost: 0,
+    etsy_count_cost: 0,
   })
 
   useEffect(() => {
@@ -77,6 +79,8 @@ const App = () => {
         cost_etsy,
         amazon_statistics: res.data.data.amazon_statistics,
         etsy_statistics: res.data.data.etsy_statistics,
+        amazon_count_cost: res.data.data.amazon_statistics.reduce((total, cur) => total + Number(cur.count_cost), 0),
+        etsy_count_cost: res.data.data.etsy_statistics.reduce((total, cur) => total + Number(cur.count_cost), 0),
       })
 
       setLoading(false)
@@ -249,11 +253,11 @@ const App = () => {
               <div className='col px-0 text-right'>{timeLabel}</div>
             </div>
             <div className='row justify-content-between'>
-              <div className='col px-0'>Amazon({statistic.count_order}):</div>
+              <div className='col px-0'>Amazon({statistic.amazon_count_cost}):</div>
               <div className='col px-0 text-right'>${_formatNumber(statistic.cost_amazon)}</div>
             </div>
             <div className='row justify-content-between'>
-              <div className='col px-0'>Etsy({statistic.count_order}):</div>
+              <div className='col px-0'>Etsy({statistic.etsy_count_cost}):</div>
               <div className='col px-0 text-right'>${_formatNumber(statistic.cost_etsy)}</div>
             </div>
             <div className='row justify-content-between'>

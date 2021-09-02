@@ -87,9 +87,14 @@ class DashboardController extends Controller
 
         if ($request->has('user_id'))
         {
-          $owner_id = $request->user_id ? $request->user_id : '';
+            $owner_id = $request->user_id ? $request->user_id : '';
         } else {
-          $owner_id = $request->user()->id;
+            $owner_id = $request->user()->id;
+        }
+
+        if (!Auth::user()->isAdmin())
+        {
+            $owner_id = $request->user()->id;
         }
 
         if (!$request->has('date_from')) {
@@ -139,13 +144,14 @@ class DashboardController extends Controller
       if (!Auth::user()->isAdmin())
       {
           $selllers = [];
-      }
+      } else {
 
-      $selllers = DB::table('users')
-          ->select('id', 'name')
-          ->where('is_seller', '=', 1)
-          ->orderBy('name', 'ASC')
-          ->get();
+          $selllers = DB::table('users')
+            ->select('id', 'name')
+            ->where('is_seller', '=', 1)
+            ->orderBy('name', 'ASC')
+            ->get();
+      }
 
       return response()->json([
           'success' => 1,

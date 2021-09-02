@@ -98090,7 +98090,9 @@ var App = function App() {
     cost_amazon: 0,
     cost_etsy: 0,
     amazon_statistics: [],
-    etsy_statistics: []
+    etsy_statistics: [],
+    amazon_count_cost: 0,
+    etsy_count_cost: 0
   }),
       _useState8 = _slicedToArray(_useState7, 2),
       statistic = _useState8[0],
@@ -98158,7 +98160,13 @@ var App = function App() {
         cost_amazon: cost_amazon,
         cost_etsy: cost_etsy,
         amazon_statistics: res.data.data.amazon_statistics,
-        etsy_statistics: res.data.data.etsy_statistics
+        etsy_statistics: res.data.data.etsy_statistics,
+        amazon_count_cost: res.data.data.amazon_statistics.reduce(function (total, cur) {
+          return total + Number(cur.count_cost);
+        }, 0),
+        etsy_count_cost: res.data.data.etsy_statistics.reduce(function (total, cur) {
+          return total + Number(cur.count_cost);
+        }, 0)
       });
       setLoading(false);
     })["catch"](function (err) {
@@ -98394,13 +98402,13 @@ var App = function App() {
     className: "row justify-content-between"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "col px-0"
-  }, "Amazon(", statistic.count_order, "):"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+  }, "Amazon(", statistic.amazon_count_cost, "):"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "col px-0 text-right"
   }, "$", Object(_helper_utils__WEBPACK_IMPORTED_MODULE_9__["_formatNumber"])(statistic.cost_amazon))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "row justify-content-between"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "col px-0"
-  }, "Etsy(", statistic.count_order, "):"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+  }, "Etsy(", statistic.etsy_count_cost, "):"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "col px-0 text-right"
   }, "$", Object(_helper_utils__WEBPACK_IMPORTED_MODULE_9__["_formatNumber"])(statistic.cost_etsy))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "row justify-content-between"
