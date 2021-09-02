@@ -97905,7 +97905,7 @@ function _mergeArrayByKey(arr1, arr2) {
 }
 function _formatNumber(yourNumber) {
   try {
-    return new Intl.NumberFormat('en-IN', {
+    return new Intl.NumberFormat('en-US', {
       style: 'decimal'
     }).format(Number(yourNumber));
   } catch (_unused) {

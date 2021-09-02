@@ -40,7 +40,7 @@ export function _mergeArrayByKey(arr1, arr2) {
 
 export function _formatNumber(yourNumber) {
   try {
-    return new Intl.NumberFormat('en-IN', { style: 'decimal' }).format(Number(yourNumber))
+    return new Intl.NumberFormat('en-US', { style: 'decimal' }).format(Number(yourNumber))
   } catch {
     return yourNumber
   }
