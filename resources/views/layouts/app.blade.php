@@ -43,9 +43,6 @@
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav mr-auto">
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url('dashboard') }}">Dashboard</a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link" href="{{ url('mockup') }}">mockups</a>
                         </li>
 
