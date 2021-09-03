@@ -27,14 +27,16 @@ class DashboardController extends Controller
             return [];
         }
 
-        $sql = "SELECT";
+        $sql = "SELECT aa.*, bb.total_cost FROM ";
+        $sql .= "(SELECT";
         $sql .= " DATE(FROM_UNIXTIME(a.amz_order_date)) AS date,";
-        $sql .= " COUNT(1) count_order,";
-        $sql .= " COUNT(case when a.status=3 then 1 ELSE NULL END) count_cancel,";
-        $sql .= " COUNT(case when a.fulfillment_cost>0 then 1 ELSE NULL END) count_cost,";
+        $sql .= " COUNT(DISTINCT a.id) count_order,";
+        $sql .= " COUNT(1) count_order_item,";
+        $sql .= " COUNT(distinct case when a.status=3 then a.id ELSE NULL END) count_cancel,";
+        $sql .= " COUNT(distinct case when a.fulfillment_cost>0 then a.id ELSE NULL END) count_cost,";
         $sql .= " SUM(b.totalAmount) total_revenue,";
-        $sql .= " SUM(case when a.status=3 then b.totalAmount ELSE 0 END) total_cancel,";
-        $sql .= " SUM(a.fulfillment_cost) total_cost";
+        $sql .= " SUM(case when a.status=3 then b.totalAmount ELSE 0 END) total_cancel";
+        // $sql .= " SUM(a.fulfillment_cost) * COUNT(DISTINCT a.id) / COUNT(1) total_cost";
         $sql .= " FROM orders a, order_items b";
         $sql .= " WHERE";
         // $sql .= " a.owner_id=?";
@@ -43,10 +45,25 @@ class DashboardController extends Controller
         $sql .= " AND a.deleted_at IS NULL";
         $sql .= " AND a.id=b.order_id";
         $sql .= " GROUP BY";
-        $sql .= " DATE(FROM_UNIXTIME(a.amz_order_date))";
-        $sql .= " ORDER BY date";
+        $sql .= " DATE(FROM_UNIXTIME(a.amz_order_date))) aa,";
+        // $sql .= " ORDER BY date";
+        $sql .= " (SELECT";
+        $sql .= "   DATE(FROM_UNIXTIME(amz_order_date)) AS date,";
+        $sql .= "   SUM(fulfillment_cost) total_cost";
+        $sql .= " FROM orders";
+        $sql .= " WHERE ('{$owner_id}'='' OR owner_id=?)";
+        $sql .= "   AND DATE(FROM_UNIXTIME(amz_order_date)) BETWEEN ? AND ?";
+        $sql .= "   AND deleted_at IS NULL";
+        $sql .= " GROUP BY DATE(FROM_UNIXTIME(amz_order_date))) bb";
+        $sql .= " WHERE aa.date=bb.date";
+        $sql .= " ORDER BY aa.date";
 
-        $results = DB::select($sql, [$owner_id, Carbon::parse($startDate), Carbon::parse($endDate)]);
+        error_log($sql);
+
+        $results = DB::select($sql, [
+          $owner_id, Carbon::parse($startDate), Carbon::parse($endDate),
+          $owner_id, Carbon::parse($startDate), Carbon::parse($endDate)
+        ]);
 
         return $results;
     }
