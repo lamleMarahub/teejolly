@@ -113,7 +113,7 @@ class DashboardController extends Controller
         "  created_at >= ? ".
         "  AND created_at < ? ".
         "  AND deleted_at IS NULL ".
-        "  AND ('{$owner_id}'='' OR owner_id=?) ".
+        "  AND ('{$owner_id}'='' OR designer_id=?) ".
         "GROUP BY   DATE(created_at) ".
         "ORDER BY   date";
 
@@ -132,16 +132,16 @@ class DashboardController extends Controller
             "  users a ".
             "  LEFT JOIN (".
             "    SELECT ".
-            "      owner_id, ".
+            "      designer_id, ".
             "      COUNT(1) count_design, ".
             "      SUM(credit) total_credit ".
             "    FROM       designs ".
             "    WHERE       created_at >= ? ".
             "      AND created_at < ? ".
             "      AND deleted_at IS NULL ".
-            "      AND ('{$owner_id}'='' OR owner_id=?) ".
-            "    GROUP BY       owner_id".
-            "  ) b ON a.id = b.owner_id ".
+            "      AND ('{$owner_id}'='' OR designer_id=?) ".
+            "    GROUP BY       designer_id".
+            "  ) b ON a.id = b.designer_id ".
             "WHERE   a.is_active = 1 ".
             "       AND ('{$owner_id}'='' OR id=?) ".
             "ORDER BY   b.total_credit DESC";
