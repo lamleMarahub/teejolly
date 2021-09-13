@@ -97888,7 +97888,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
  * @returns
  */
 function _mergeArrayByKey(arr1, arr2) {
-  return Object.values([].concat(_toConsumableArray(arr1), _toConsumableArray(arr2)).reduce(function (acc, cur) {
+  var mergedArray = Object.values([].concat(_toConsumableArray(arr1), _toConsumableArray(arr2)).reduce(function (acc, cur) {
     acc[cur['date']] = {
       date: cur['date'],
       count_order: (acc[cur['date']] ? Number(acc[cur['date']]['count_order']) : 0) + (Number(cur['count_order']) || 0),
@@ -97902,6 +97902,9 @@ function _mergeArrayByKey(arr1, arr2) {
     acc[cur['date']].total_net_revenue = Number(acc[cur['date']].total_revenue) - Number(acc[cur['date']].total_cancel);
     return acc;
   }, {}));
+  return mergedArray.sort(function (a, b) {
+    return a.date >= b.date ? 1 : -1;
+  });
 }
 function _formatNumber(yourNumber) {
   try {
@@ -98020,7 +98023,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _helper_utils__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../_helper/utils */ "./resources/js/_helper/utils.js");
 /* harmony import */ var _App_scss__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./App.scss */ "./resources/js/components/App.scss");
 /* harmony import */ var _App_scss__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(_App_scss__WEBPACK_IMPORTED_MODULE_10__);
-/* harmony import */ var _chart_order_revenue_chart_component__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./chart/order-revenue-chart.component */ "./resources/js/components/chart/order-revenue-chart.component.js");
+/* harmony import */ var _chart_design_chart_component__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./chart/design-chart.component */ "./resources/js/components/chart/design-chart.component.js");
+/* harmony import */ var _chart_order_revenue_chart_component__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./chart/order-revenue-chart.component */ "./resources/js/components/chart/order-revenue-chart.component.js");
 function _extends() { _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
@@ -98040,6 +98044,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
 
 
 
@@ -98091,6 +98096,7 @@ var App = function App() {
     cost_etsy: 0,
     amazon_statistics: [],
     etsy_statistics: [],
+    design_statistics: [],
     amazon_count_cost: 0,
     etsy_count_cost: 0
   }),
@@ -98132,7 +98138,8 @@ var App = function App() {
       }, 0);
       var cost_etsy = res.data.data.etsy_statistics.reduce(function (total, cur) {
         return total + Number(cur.total_cost);
-      }, 0);
+      }, 0); // console.log('datas=', datas)
+
       setStatistic({
         datas: datas,
         top_products: res.data.data.top_products,
@@ -98161,6 +98168,7 @@ var App = function App() {
         cost_etsy: cost_etsy,
         amazon_statistics: res.data.data.amazon_statistics,
         etsy_statistics: res.data.data.etsy_statistics,
+        design_statistics: res.data.data.design_statistics,
         amazon_count_cost: res.data.data.amazon_statistics.reduce(function (total, cur) {
           return total + Number(cur.count_cost);
         }, 0),
@@ -98356,11 +98364,15 @@ var App = function App() {
     onClick: handleSubmit(handleFilter)
   }, "Go"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "order-chart"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_chart_order_revenue_chart_component__WEBPACK_IMPORTED_MODULE_11__["default"], {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_chart_order_revenue_chart_component__WEBPACK_IMPORTED_MODULE_12__["default"], {
     datas: statistic.datas
   })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "summary"
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+    className: "design-chart"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_chart_design_chart_component__WEBPACK_IMPORTED_MODULE_11__["default"], {
+    datas: statistic.design_statistics
+  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "pr-0 col-lg-3 col-md-4 right-zone"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
     className: "row justify-content-between"
@@ -98424,7 +98436,10 @@ var App = function App() {
       className: "row justify-content-between"
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
       className: "col px-0"
-    }, item.asin), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("a", {
+      href: "https://www.amazon.com/dp/".concat(item.asin),
+      target: "_blank"
+    }, item.asin)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
       className: "col px-0 text-right"
     }, item.count_product));
   })))));
@@ -98461,6 +98476,99 @@ var update = __webpack_require__(/*! ../../../node_modules/style-loader/lib/addS
 if(content.locals) module.exports = content.locals;
 
 if(false) {}
+
+/***/ }),
+
+/***/ "./resources/js/components/chart/design-chart.component.js":
+/*!*****************************************************************!*\
+  !*** ./resources/js/components/chart/design-chart.component.js ***!
+  \*****************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react_chartjs_2__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react-chartjs-2 */ "./node_modules/react-chartjs-2/dist/index.modern.js");
+
+
+/**
+ *
+ * @param {*} props.datas
+ * @returns
+ */
+
+var DesignChart = function DesignChart(props) {
+  var config = {
+    options: {
+      responsive: true,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      stacked: false,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Design - Credit'
+        }
+      },
+      scales: {
+        y: {
+          type: 'linear',
+          display: true,
+          position: 'left'
+        },
+        y1: {
+          type: 'linear',
+          display: true,
+          position: 'right',
+          // grid line settings
+          grid: {
+            drawOnChartArea: false // only want the grid lines for one axis to show up
+
+          }
+        }
+      }
+    }
+  };
+  var data = {
+    labels: props.datas.map(function (item) {
+      return item.date;
+    }),
+    //['1', '2', '3', '4', '5', '6'],
+    datasets: [{
+      type: 'line',
+      label: 'Credit',
+      data: props.datas.map(function (item) {
+        return item.total_credit;
+      }),
+      //[12, 19, 3, 5, 2, 3],
+      backgroundColor: 'rgb(54, 162, 235)',
+      borderColor: 'rgba(54, 162, 235, 0.6)',
+      yAxisID: 'y1',
+      lineTension: 0.3
+    }, {
+      label: 'Design',
+      data: props.datas.map(function (item) {
+        return item.count_design;
+      }),
+      //[1, 2, 1, 1, 2, 2],
+      backgroundColor: 'rgb(7, 219, 12)',
+      borderColor: 'rgba(7, 219, 12, 0.6)',
+      yAxisID: 'y',
+      //'y1',
+      lineTension: 0.3
+    }]
+  };
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react_chartjs_2__WEBPACK_IMPORTED_MODULE_1__["Bar"], {
+    data: data,
+    options: config.options
+  });
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (/*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.memo(DesignChart));
 
 /***/ }),
 
@@ -98598,15 +98706,20 @@ var DATE_FORMAT = {
 /*!****************************************************!*\
   !*** ./resources/js/services/dashboard.service.js ***!
   \****************************************************/
-/*! exports provided: getStatistics, getSellerList */
+/*! exports provided: getStatistics, getSellerList, getDesignStatistics */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getStatistics", function() { return getStatistics; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getSellerList", function() { return getSellerList; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getDesignStatistics", function() { return getDesignStatistics; });
 function getStatistics(queryString) {
   return window.axios.get("/dashboard/getStatistics?".concat(queryString));
+}
+
+function getDesignStatistics(queryString) {
+  return window.axios.get("/dashboard/getDesignStatistics?".concat(queryString));
 }
 
 function getSellerList() {

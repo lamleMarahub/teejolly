@@ -9,6 +9,7 @@ import { DATE_FORMAT, DATE_RANGE } from '../constants/app.constant';
 import * as dashboardService from '../services/dashboard.service';
 import { _formatNumber, _mergeArrayByKey } from '../_helper/utils';
 import './App.scss';
+import DesignChart from './chart/design-chart.component';
 import OrderRevenueChart from './chart/order-revenue-chart.component';
 
 const App = () => {
@@ -30,6 +31,7 @@ const App = () => {
     cost_etsy: 0,
     amazon_statistics: [],
     etsy_statistics: [],
+    design_statistics: [],
     amazon_count_cost: 0,
     etsy_count_cost: 0,
   })
@@ -65,6 +67,8 @@ const App = () => {
       const cost_amazon = res.data.data.amazon_statistics.reduce((total, cur) => total + Number(cur.total_cost), 0)
       const cost_etsy = res.data.data.etsy_statistics.reduce((total, cur) => total + Number(cur.total_cost), 0)
 
+      // console.log('datas=', datas)
+
       setStatistic({
         datas,
         top_products: res.data.data.top_products,
@@ -79,6 +83,7 @@ const App = () => {
         cost_etsy,
         amazon_statistics: res.data.data.amazon_statistics,
         etsy_statistics: res.data.data.etsy_statistics,
+        design_statistics: res.data.data.design_statistics,
         amazon_count_cost: res.data.data.amazon_statistics.reduce((total, cur) => total + Number(cur.count_cost), 0),
         etsy_count_cost: res.data.data.etsy_statistics.reduce((total, cur) => total + Number(cur.count_cost), 0),
       })
@@ -225,6 +230,9 @@ const App = () => {
             <div className='summary'>
 
             </div>
+            <div className='design-chart'>
+              <DesignChart datas={statistic.design_statistics} />
+            </div>
           </div>
           <div className="pr-0 col-lg-3 col-md-4 right-zone">
             <div className='row justify-content-between'>
@@ -268,7 +276,9 @@ const App = () => {
             <h4 className='border-primary border-top mt-2 pt-2'>Top products:</h4>
             {statistic.top_products && statistic.top_products.map((item, idx) => (
               <div key={idx} className='row justify-content-between'>
-                <div className='col px-0'>{item.asin}</div>
+                <div className='col px-0'>
+                  <a href={`https://www.amazon.com/dp/${item.asin}`} target='_blank'>{item.asin}</a>
+                </div>
                 <div className='col px-0 text-right'>{item.count_product}</div>
               </div>
             ))}

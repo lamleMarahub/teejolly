@@ -20,7 +20,7 @@
  * @returns
  */
 export function _mergeArrayByKey(arr1, arr2) {
-  return Object.values([...arr1, ...arr2].reduce((acc, cur) => {
+  const mergedArray = Object.values([...arr1, ...arr2].reduce((acc, cur) => {
     acc[cur['date']] = {
       date: cur['date'],
       count_order: (acc[cur['date']] ? Number(acc[cur['date']]['count_order']) : 0) + (Number(cur['count_order']) || 0),
@@ -36,6 +36,8 @@ export function _mergeArrayByKey(arr1, arr2) {
 
     return acc;
   }, {}));
+
+  return mergedArray.sort((a, b) => a.date >= b.date ? 1 : -1);
 }
 
 export function _formatNumber(yourNumber) {
