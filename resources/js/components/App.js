@@ -32,6 +32,7 @@ const App = () => {
     amazon_statistics: [],
     etsy_statistics: [],
     design_statistics: [],
+    user_credit_statistics: [],
     amazon_count_cost: 0,
     etsy_count_cost: 0,
   })
@@ -84,6 +85,7 @@ const App = () => {
         amazon_statistics: res.data.data.amazon_statistics,
         etsy_statistics: res.data.data.etsy_statistics,
         design_statistics: res.data.data.design_statistics,
+        user_credit_statistics: res.data.data.user_credit_statistics,
         amazon_count_cost: res.data.data.amazon_statistics.reduce((total, cur) => total + Number(cur.count_cost), 0),
         etsy_count_cost: res.data.data.etsy_statistics.reduce((total, cur) => total + Number(cur.count_cost), 0),
       })
@@ -280,6 +282,16 @@ const App = () => {
                   <a href={`https://www.amazon.com/dp/${item.asin}`} target='_blank'>{item.asin}</a>
                 </div>
                 <div className='col px-0 text-right'>{item.count_product}</div>
+              </div>
+            ))}
+
+            <h4 className='border-primary border-top mt-2 pt-2'>User credit:</h4>
+            {statistic.user_credit_statistics && statistic.user_credit_statistics.map((item, idx) => (
+              <div key={idx} className='row justify-content-between'>
+                <div className='col px-0'>
+                  {item.name}
+                </div>
+                <div className='col px-0 text-right'>{_formatNumber(item.total_credit)}</div>
               </div>
             ))}
           </div>

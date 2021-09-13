@@ -98097,6 +98097,7 @@ var App = function App() {
     amazon_statistics: [],
     etsy_statistics: [],
     design_statistics: [],
+    user_credit_statistics: [],
     amazon_count_cost: 0,
     etsy_count_cost: 0
   }),
@@ -98169,6 +98170,7 @@ var App = function App() {
         amazon_statistics: res.data.data.amazon_statistics,
         etsy_statistics: res.data.data.etsy_statistics,
         design_statistics: res.data.data.design_statistics,
+        user_credit_statistics: res.data.data.user_credit_statistics,
         amazon_count_cost: res.data.data.amazon_statistics.reduce(function (total, cur) {
           return total + Number(cur.count_cost);
         }, 0),
@@ -98442,6 +98444,17 @@ var App = function App() {
     }, item.asin)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
       className: "col px-0 text-right"
     }, item.count_product));
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("h4", {
+    className: "border-primary border-top mt-2 pt-2"
+  }, "User credit:"), statistic.user_credit_statistics && statistic.user_credit_statistics.map(function (item, idx) {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+      key: idx,
+      className: "row justify-content-between"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+      className: "col px-0"
+    }, item.name), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("div", {
+      className: "col px-0 text-right"
+    }, Object(_helper_utils__WEBPACK_IMPORTED_MODULE_9__["_formatNumber"])(item.total_credit)));
   })))));
 };
 

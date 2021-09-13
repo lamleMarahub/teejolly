@@ -112,11 +112,41 @@ class DashboardController extends Controller
         "where ".
         "  created_at >= ? ".
         "  AND created_at < ? ".
+        "  AND deleted_at IS NULL ".
         "  AND ('{$owner_id}'='' OR owner_id=?) ".
         "GROUP BY   DATE(created_at) ".
         "ORDER BY   date";
 
         $results = DB::select($sql, [Carbon::parse($startDate), Carbon::parse($endDate)->addDay(1), $owner_id]);
+
+        return $results;
+    }
+
+    private function getUserCreditStatistics(Request $request, $startDate, $endDate, $owner_id) {
+        $sql = "SELECT ".
+            "  a.id, ".
+            "  a.name, ".
+            "  IFNULL(b.count_design, 0) count_design, ".
+            "  IFNULL(b.total_credit, 0) total_credit ".
+            "from ".
+            "  users a ".
+            "  LEFT JOIN (".
+            "    SELECT ".
+            "      owner_id, ".
+            "      COUNT(1) count_design, ".
+            "      SUM(credit) total_credit ".
+            "    FROM       designs ".
+            "    WHERE       created_at >= ? ".
+            "      AND created_at < ? ".
+            "      AND deleted_at IS NULL ".
+            "      AND ('{$owner_id}'='' OR owner_id=?) ".
+            "    GROUP BY       owner_id".
+            "  ) b ON a.id = b.owner_id ".
+            "WHERE   a.is_active = 1 ".
+            "       AND ('{$owner_id}'='' OR id=?) ".
+            "ORDER BY   b.total_credit DESC";
+
+        $results = DB::select($sql, [Carbon::parse($startDate), Carbon::parse($endDate)->addDay(1), $owner_id, $owner_id]);
 
         return $results;
     }
@@ -150,6 +180,7 @@ class DashboardController extends Controller
         $amazonStatistics = $this->getAmazonStatistics($request, $startDate, $endDate, $owner_id);
         $etsyStatistics = $this->getEtsyStatistics($request, $startDate, $endDate, $owner_id);
         $designStatistics = $this->getDesignStatistics($request, $startDate, $endDate, $owner_id);
+        $userCreditStatistics = $this->getUserCreditStatistics($request, $startDate, $endDate, $owner_id);
 
         $sql = "SELECT b.asin, COUNT(1) count_product";
         $sql .= " FROM orders a, order_items b";
@@ -176,6 +207,7 @@ class DashboardController extends Controller
               'amazon_statistics' => $amazonStatistics,
               'etsy_statistics' => $etsyStatistics,
               'design_statistics' => $designStatistics,
+              'user_credit_statistics' => $userCreditStatistics,
               'top_products' => $topProducts,
             ]
         ]);
@@ -189,10 +221,11 @@ class DashboardController extends Controller
       {
           $selllers = [];
       } else {
-
           $selllers = DB::table('users')
-            ->select('id', 'name')
-            ->where('is_seller', '=', 1)
+            ->select('id', 'name', 'is_designer')
+            ->where('is_active', '=', 1)
+            ->orderBy('is_seller', 'ASC')
+            ->orderBy('is_designer', 'ASC')
             ->orderBy('name', 'ASC')
             ->get();
       }
