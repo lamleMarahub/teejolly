@@ -18,34 +18,11 @@ class PrintProviderController extends Controller
     {
         $this->middleware('auth.seller');
         $this->pagesize = env('PAGINATION_PAGESIZE', 40);
-    }
-
-    // Webhook: 
-    // tracking_updated
-    // shipping_address_unverified
-    // order_canceled
-    // order_completed
-
-    public function tracking_updated(Request $request){
-        return $request->all();
-    }
-
-    public function shipping_address_unverified(Request $request){
-        return 1;
-    }
-
-    public function order_canceled(Request $request){
-        return 1;
-    }
-
-    public function order_completed(Request $request){
-        return 1;
-    }
+    } 
 
     // Gearment
     public function getProductVariants()
-    {
-    	
+    {    	
     	$curl = curl_init();
         curl_setopt_array($curl, array(
         CURLOPT_URL => "https://account.gearment.com/api/v2/?act=products",
@@ -76,5 +53,22 @@ class PrintProviderController extends Controller
     public function createOrder()
     {
         
+    }
+
+    // Webhook:
+    public function tracking_updated(Request $request){
+        return $request->all();
+    }
+
+    public function shipping_address_unverified(Request $request){
+        return 1;
+    }
+
+    public function order_canceled(Request $request){
+        return 1;
+    }
+
+    public function order_completed(Request $request){
+        return 1;
     }
 }
