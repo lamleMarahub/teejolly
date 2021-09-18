@@ -42,6 +42,9 @@
                     @if (Auth::check())
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav mr-auto">
+                        <!--<li class="nav-item">-->
+                        <!--    <a class="nav-link" href="{{ url('dashboard') }}">dashboard</a>-->
+                        <!--</li>-->
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url('mockup') }}">mockups</a>
                         </li>
@@ -56,6 +59,9 @@
 
                         @if(Auth::user()->isSeller())
                         <li class="nav-item">
+                            <a class="nav-link" href="{{ url('orders') }}">amazon</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{{ url('etsy') }}">shops</a>
                         </li>
                         <li class="nav-item">
@@ -65,16 +71,15 @@
                             <a class="nav-link" href="{{ url('etsy/statistic') }}">statistics</a>
                         </li>
                         @endif
-
-                        @if(Auth::user()->isSeller())
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">amazon</a>
-                            <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                                <a class="dropdown-item" href="{{ url('orders') }}">orders</a>
-                                <a class="dropdown-item" href="{{ url('order/statistic') }}">statistics</a>
-                            </div>
-                        </li>
-                        @endif
+                        <!--@if(Auth::user()->isAdmin())-->
+                        <!--<li class="nav-item dropdown">-->
+                        <!--    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">amazon</a>-->
+                        <!--    <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">-->
+                        <!--        <a class="dropdown-item" href="{{ url('orders') }}">orders</a>-->
+                        <!--        <a class="dropdown-item" href="{{ url('order/statistic') }}">statistics</a>-->
+                        <!--    </div>-->
+                        <!--</li>-->
+                        <!--@endif-->
                     </ul>
                     @endif
 

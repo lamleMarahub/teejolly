@@ -614,7 +614,7 @@ a:hover {
                 </div>
                 <div class="card-footer text-muted p-2">
                     <div class="d-flex justify-content-between">
-                        <span></span>
+                        <span>({{$d->id}})</span>
                         <div class="group">
                             <a class="text-purple" href="javascript:showCollectionModal({{ $d->id }})"><i class="fas fa-plus"></i> collection</a>
                         </div>
@@ -751,7 +751,6 @@ a:hover {
                                     <select class="form-control form-control-sm" id="credit" name="credit">
                                         <option value="1">1</option>
                                         <option value="2">2</option>
-                                        <option value="3">3</option>
                                     </select>
                                 </div>
                             </div>

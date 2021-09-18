@@ -40,6 +40,7 @@ Route::post('order/ajaxUpdateOrder', 'OrderController@ajaxUpdateOrder');
 Route::post('order/ajaxTeescape', 'OrderController@ajaxTeescape');
 Route::post('order/ajaxDelete', 'OrderController@ajaxDelete');
 Route::get('order/statistic', 'OrderController@statistic');
+Route::get('order/create/{id}', 'OrderController@createOrder');
 
 // Design
 Route::get('design/upload', 'DesignController@upload');

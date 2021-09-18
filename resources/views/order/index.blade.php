@@ -368,7 +368,7 @@ function deleteOrder() {
                         {{\Carbon\Carbon::createFromTimestamp($d->amz_order_date)->diffForHumans()}}
                     </td>
                     <td class="text-center" nowrap>
-                        @if($d->status == 0) <span class="badge badge-warning">new order</span> @elseif($d->status == 1) <span class="badge badge-warning">in production</span> @elseif($d->status == 2) <span class="badge badge-warning">shipped</span> @else <span class="badge badge-dark">cancelled</span> @endif
+                        @if($d->status == 0) <a href="order/create/{{$d->id}}" class="btn btn-sm btn-warning" target="_blank">new order </a> @elseif($d->status == 1) <span class="badge badge-warning">in production</span> @elseif($d->status == 2) <span class="badge badge-warning">shipped</span> @else <span class="badge badge-dark">cancelled</span> @endif
                     </td>
                     <td class="text-right" nowrap>
                         {{$d->fulfillment_cost}}
