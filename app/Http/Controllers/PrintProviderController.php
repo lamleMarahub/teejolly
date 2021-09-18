@@ -41,4 +41,39 @@ class PrintProviderController extends Controller
     public function order_completed(Request $request){
         return 1;
     }
+
+    // Gearment
+    public function getProductVariants()
+    {
+    	
+    	$curl = curl_init();
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => "https://account.gearment.com/api/v2/?act=products",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "GET",
+        CURLOPT_POSTFIELDS =>"{\r\n\t\"api_key\":\"QBIVKPk3xTZEsYzI\",\r\n\t\"api_signature\":\"HH2pU54NpWGPvY5OOpDtpG6Z5t7unFLO\"}",
+        CURLOPT_HTTPHEADER => array(
+            "Content-Type: application/json"
+        ),
+        ));
+        
+        $response = curl_exec($curl);
+        curl_close($curl);
+        
+        print_r($response);
+
+        $obj =  json_decode($response,true);
+        
+        // print_r($obj);
+        exit();
+
+        // if($obj['status'] == 'error'){
+        //     exit("response: ".$obj['message']." (".$obj['status'].")");
+        // }
+    }
 }
