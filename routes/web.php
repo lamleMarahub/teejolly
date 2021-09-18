@@ -41,6 +41,8 @@ Route::post('order/ajaxTeescape', 'OrderController@ajaxTeescape');
 Route::post('order/ajaxDelete', 'OrderController@ajaxDelete');
 Route::get('order/statistic', 'OrderController@statistic');
 Route::get('order/create/{id}', 'OrderController@createOrder');
+Route::post('order/print-providers', 'OrderController@getPrintProviders');
+Route::post('order/variants', 'OrderController@getVariants');
 
 // Design
 Route::get('design/upload', 'DesignController@upload');

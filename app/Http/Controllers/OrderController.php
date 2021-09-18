@@ -19,32 +19,32 @@ class OrderController extends Controller
         $this->middleware('auth.seller');
         $this->pagesize = env('PAGINATION_PAGESIZE', 40);
     }
-    
+
     public function createOrder($id){
-        
+
         $order = Order::find($id);
         if(!$order) return response()->json(['status' => 'order not found']);
-        
+
         $orderItems = OrderItem::where('order_id', $id)->get();
         if(!$orderItems) return response()->json(['success' => 'order not found']);
-        
+
         return view('order.printify')
             ->with('order', $order)
             ->with('orderItems', $orderItems);
-        
+
     }
     public function statistic(Request $request){
-        
+
         if (!$request->has('reportrange')) {
             $startDate = Carbon::now()->startOfMonth();
             $endDate = Carbon::now()->endOfMonth();
         }else{
             $date = explode(" - ", $request->reportrange);
             $startDate = Carbon::parse($date[0]);
-            $endDate = Carbon::parse($date[1]); 
+            $endDate = Carbon::parse($date[1]);
         }
-        
-        if (!$request->has('owner_id')) {            
+
+        if (!$request->has('owner_id')) {
             $owner_condition = "=";
             $owner_id = $request->user()->id;
         } elseif ($request->owner_id == 0) {
@@ -54,13 +54,13 @@ class OrderController extends Controller
             $owner_condition = "=";
             $owner_id = $request->owner_id;
         }
-        
-        $users = User::withTrashed()->orderBy('name','ASC')->get()->keyBy('id'); 
-        
-        $filters = [            
+
+        $users = User::withTrashed()->orderBy('name','ASC')->get()->keyBy('id');
+
+        $filters = [
             'owner_id'=> $owner_id
         ];
-        
+
         $orders = DB::table('orders')
             ->select(DB::raw('DATE(FROM_UNIXTIME(amz_order_date)) as date'), DB::raw('count(*) as total'))
             ->where('owner_id',$owner_condition,$owner_id)
@@ -69,7 +69,7 @@ class OrderController extends Controller
             ->groupBy('date')
             ->orderBy('date', 'ASC')
             ->get();
-            
+
         $costs = DB::table('orders')
             ->select(DB::raw('DATE(FROM_UNIXTIME(amz_order_date)) as date'), DB::raw('sum(fulfillment_cost) as total'))
             ->where('owner_id',$owner_condition,$owner_id)
@@ -78,15 +78,15 @@ class OrderController extends Controller
             ->groupBy('date')
             ->orderBy('date', 'ASC')
             ->get();
-            
+
         $orders_ids = Order::where('owner_id',$owner_condition,$owner_id)->whereNull('deleted_at')
             ->whereBetween(DB::raw('DATE(FROM_UNIXTIME(amz_order_date))'), [Carbon::parse($startDate), Carbon::parse($endDate)])
             ->pluck('id')->toArray();
-            
-        
+
+
         $orders_units = OrderItem::whereNull('deleted_at')->whereIn('order_id',$orders_ids)->count();
-        
-            
+
+
         $revenues = DB::table('order_items')
             ->select(DB::raw('DATE(FROM_UNIXTIME(amz_order_date)) as date'), DB::raw('sum(totalAmount) as total'))
             ->whereNull('deleted_at')
@@ -94,7 +94,7 @@ class OrderController extends Controller
             ->groupBy('date')
             ->orderBy('date', 'ASC')
             ->get();
-            
+
         return view('order.statistic')
             ->with('startDate',$startDate)
             ->with('endDate',$endDate)
@@ -105,10 +105,10 @@ class OrderController extends Controller
             ->with('owner_id', $owner_id)
             ->with('revenues',$revenues);
     }
-    
+
     public function index(Request $request)
     {
-    	
+
     	if (!$request->has('keyword')) {
             $keyword = "";
         } else {
@@ -134,7 +134,7 @@ class OrderController extends Controller
             $status = $request->status;
             $filter_status = $status;
         }
-        
+
         if(!$request->has('fulfillment')){
             $fulfillment = "all";
             $fcondition = "<>";
@@ -145,9 +145,9 @@ class OrderController extends Controller
             $fulfillment = $request->fulfillment;
             $fcondition = "=";
         }
-        
+
         $brand = Order::groupBy('brand')->pluck('brand')->toArray();
-        
+
         if(!$request->has('seller')){
             if(in_array(Auth::user()->id,[1])){
                 $seller = 0;
@@ -173,7 +173,7 @@ class OrderController extends Controller
                 return response()->json(['message'=>"Access Denied"]);
             }
         }
-        
+
         if($brand_name != "all"){   // by brand name
             $data = Order::where('brand', $brand_name)->where('status', $status_condition, $status)->where('fulfillment_by',$fcondition,$fulfillment)->where('owner_id',$seller_condition,$seller)
                     ->where(function ($query) use ($keyword) {
@@ -191,7 +191,7 @@ class OrderController extends Controller
                     })
                     ->orderBy('created_at','desc')->paginate($this->pagesize);
         }
-        
+
         $filters = [
             'brand_name' => $brand_name,
             'keyword' => $keyword,
@@ -202,14 +202,14 @@ class OrderController extends Controller
 
         $owner_ids = Order::groupBy('owner_id')->pluck('owner_id')->toArray();
         $sellers = User::whereIn('id', $owner_ids)->get();
-        
+
     	return view('order.index')
     		->with('data', $data)
     		->with('filters', $filters)
     		->with('sellers', $sellers)
     		->with('brand', $brand);
     }
-    
+
     public function ajaxDelete(Request $request)
     {
 
@@ -231,9 +231,9 @@ class OrderController extends Controller
                 'message' => 'access denied',
             ]);
         }
-        
+
     }
-    
+
     private function teescape($fulfillment_id, $id)
     {
         $curl = curl_init();
@@ -254,27 +254,27 @@ class OrderController extends Controller
                 "Cookie: ".Auth::user()->cookie.""
             ),
         ));
-        
+
         $response = curl_exec($curl);
         curl_close($curl);
-        
+
         if($response == "ERROR:Invalid Request") return [
             'success' => -1,
             'data' => 'ERROR:Invalid Request',
         ];
-        
+
         $usps = array();
 		$usps[0] = '(94|93|92|94|95)[0-9]{20}';
-		
+
         $ups = array();
 		$ups[0] = '(82)[0-9]{16}';
 
-		
+
 		$order = Order::find($id);
-		
+
 		preg_match_all('/<b>([0-9.]+)<\/b>/', $response, $arr);
 		$cost = array_key_exists(0, $arr) ? strip_tags($arr[0][0]) : 0;
-		
+
         if (preg_match('/('.$usps[0].')/', $response, $matches))
 		{
 		    $carrier = "USPS";
@@ -298,7 +298,7 @@ class OrderController extends Controller
             // print_r('On Order');
 		}
     }
-   
+
 
     private function printify($fulfillment_id, $id)
     {
@@ -326,27 +326,27 @@ class OrderController extends Controller
         curl_close($curl);
 
         $result =  json_decode($response,true);
-        
+
         // print_r($result);
         // exit();
-        
+
         if (array_key_exists('error', $result)) return "ERROR:Invalid Request";;
-        
+
         $fulfillment_cost = ($result['total_price'] + $result['total_shipping'] + $result['total_tax'])*0.01;
 
         $order = Order::find($id);
-        
+
         $order->update(['fulfillment_cost' => $fulfillment_cost]);
-        
+
         if (array_key_exists('shipments', $result)) {
-            
+
             $order->update([
-                'carrier' => $result['shipments'][0]["carrier"], 
+                'carrier' => $result['shipments'][0]["carrier"],
                 'tracking_number' => $result['shipments'][0]["number"]
             ]);
         }
     }
-    
+
     private function teezily($fulfillment_id, $id)
     {
         $curl = curl_init();
@@ -372,30 +372,30 @@ class OrderController extends Controller
         curl_close($curl);
 
         $result =  json_decode($response,true);
-        
+
         if (array_key_exists('status', $result)) exit("response: ".$result['title']." (".$result['status'].")");
-        
+
         $result['orders'][0]['state'] == "Cancel" ?  $fulfillment_cost = 0 : $fulfillment_cost = $result['orders'][0]['total_amount'];
-        
+
         $order = Order::find($id);
         $order->update(['fulfillment_cost' => $fulfillment_cost]);
-        
+
         if(!empty($result['orders'][0]['tracking_number'])){
             $order->update([
-                'carrier' => $result['orders'][0]['tracking_number'][0]["carrier"], 
+                'carrier' => $result['orders'][0]['tracking_number'][0]["carrier"],
                 'tracking_number' => $result['orders'][0]['tracking_number'][0]["tracking_number"],
             ]);
-            
+
         }
     }
-    
+
     private function gearment($fulfillment_id, $id)
     {
         $curl = curl_init();
-        
+
         $gearment_api_key = Auth::user()->gearment_api_key;
         $gearment_api_signature = Auth::user()->gearment_api_signature;
-        
+
         curl_setopt_array($curl, array(
         CURLOPT_URL => "https://account.gearment.com/api/v2/?act=order_info",
         CURLOPT_RETURNTRANSFER => true,
@@ -411,23 +411,23 @@ class OrderController extends Controller
             "Content-Type: application/json"
         ),
         ));
-        
+
         $response = curl_exec($curl);
         curl_close($curl);
 
         $obj =  json_decode($response,true);
-        
+
         if($obj['status'] == 'error'){
             print_r($response);
             exit;
         }
-        
+
         if($obj['status'] == 'success'){
             $obj['result']['ord_payment_status'] == "canceled" ?  $fulfillment_cost = 0 : $fulfillment_cost = ltrim($obj['result']['ord_total'], '$');
-            
+
             $order = Order::find($id);
             $order->update([
-                'carrier' => $obj['result']['trackings'][0]['tracking_company'], 
+                'carrier' => $obj['result']['trackings'][0]['tracking_company'],
                 'tracking_number' => $obj['result']['trackings'][0]['tracking_number'],
                 'fulfillment_cost' => $fulfillment_cost,
             ]);
@@ -436,7 +436,7 @@ class OrderController extends Controller
     }
     public function ajaxTeescape(Request $request)
     {
-        
+
         $success = 1;
         $message = 'get order detail #'.$request->id;
 
@@ -446,17 +446,17 @@ class OrderController extends Controller
         ]);
 
         $order = Order::find($request->id);
-        
+
         if(!$order){
             $success = -1;
             $message = 'order not found';
         }else{
-                        
+
             if($order->fulfillment_id == null) return response()->json([
                 'success' => 0,
                 'message' => 'new order',
             ]);
-            
+
             switch ($order->fulfillment_by) {
                 case 'printify':
                     $this->printify($order->fulfillment_id, $request->id);
@@ -481,12 +481,12 @@ class OrderController extends Controller
             'message' => $message,
         ]);
     }
-    
+
     public function editShipment(Request $request)
     {
         $success = 1;
         $data = [];
-        
+
         return response()->json([
             'success' => 1,
             'data' => $data,
@@ -503,8 +503,8 @@ class OrderController extends Controller
             'message' => 'OK',
         ]);
     }
-    
-    public function ajaxGetOrder(Request $request){        
+
+    public function ajaxGetOrder(Request $request){
         //json structure
         $success = 1;
         $data = [];
@@ -513,15 +513,15 @@ class OrderController extends Controller
         if (!$request->id) return response()->json([
             'success' => 0,
             'data' => $data
-        ]);        
-                
-        $id = $request->id;        
+        ]);
+
+        $id = $request->id;
 
         $order = Order::find($id);
         if (!$order) return response()->json([
             'success' => 0,
             'data' => $data
-        ]); 
+        ]);
 
         $data = $order;
         $item = OrderItem::where('order_id',$id)->get();
@@ -533,52 +533,52 @@ class OrderController extends Controller
         ]);
     }
 
-    public function ajaxUpdateOrder(Request $request){      
-          
+    public function ajaxUpdateOrder(Request $request){
+
         //json structure
         $success = 1;
         $data = [];
-        if (!$request->design_id) 
+        if (!$request->design_id)
         return response()->json([
             'success' => 0,
             'data' => $data,
-        ]);   
+        ]);
 
         $id = $request->design_id;
         $order = Order::find($id);
 
-        if (!$order) 
+        if (!$order)
             return response()->json([
                 'success' => 0,
                 'data' => $data,
             ]);
 
-        $order->fulfillment_id = trim($request->fulfillment_id);   
+        $order->fulfillment_id = trim($request->fulfillment_id);
         if($request->fulfillment_id != "" && $order -> status == 0){
             $order -> status = 1;
         }else{
             $order->status = $request->order_status;
         }
-        $order->fulfillment_by = trim($request->fulfillment_by);        
-        $order->carrier = trim($request->carrier);        
-        $order->tracking_number = trim($request->tracking_number);      
+        $order->fulfillment_by = trim($request->fulfillment_by);
+        $order->carrier = trim($request->carrier);
+        $order->tracking_number = trim($request->tracking_number);
         $order->note = $request->note;
-        
+
         $order->save();
-        
+
         return response()->json([
             'success' => $success,
             'data' => $order
         ]);
     }
-    
+
     public function getAmzOrder(Request $request)
     {
         if (!$request->order_id || $request->order_id == "") return response()->json([
             'success' => 0,
             'message' => 'not found order_id or order_id is null',
-        ]);  
-        
+        ]);
+
         if (Order::where('amz_order_id', '=', $request->order_id)->exists()) {
 			// user found
 			return response()->json([
@@ -591,43 +591,43 @@ class OrderController extends Controller
 			$order -> amz_order_id = $request->order_id;
 			$order -> amz_order_date = $request->order_date;
 			$order -> brand = trim($request->brand);
-			
+
             // 18 - Oanh; 16 - Suong; ; 25 - Uyen; 15 - Linh; evetshirt_07 account 01 cu chuyen qua account 13
-            
+
 			$sellers = array(
-			    'account_10' => 18,    
-			    'account_09' => 18,    
-			    'account_08' => 18,  
-			    'account_07' => 18,    
+			    'account_10' => 18,
+			    'account_09' => 18,
+			    'account_08' => 18,
+			    'account_07' => 18,
                 'account_14' => 18,
-                
+
 			    'account_00' => 1,
 			    'account_01' => 1,
 			    'account_06' => 1,
 			    'account_11' => 1,
 			    'account_17' => 1,
 			    'account_22' => 1,
-			    
+
 			    'account_12' => 16,
 			    'account_15' => 16,
-			    'account_19' => 16,    
-			    'account_23' => 16, 
-			    'account_24' => 16, 
-			    'account_26' => 16, 
+			    'account_19' => 16,
+			    'account_23' => 16,
+			    'account_24' => 16,
+			    'account_26' => 16,
 			    'account_27' => 16,
 			    'account_18' => 16,
-			    
+
 			    'account_16' => 25,
 			    'account_03' => 25,
-			    
+
 			    'account_25' => 15,
 			);
-			
+
             if (array_key_exists($request->brand,$sellers))
             {
                 $order->owner_id = $sellers[$request->brand];
             }
-			
+
 			$order -> full_name = $request->full_name;
 			$order -> address_1 = $request->address_1;
 			$order -> address_2 = $request->address_2;
@@ -635,11 +635,11 @@ class OrderController extends Controller
 			$order -> state = $request->state;
 			$order -> zip_code = $request->zip_code;
 			$order -> save();
-            
+
             if(!$request->items) return response()->json([
                 'success' => 0,
                 'message' => 'requeest: items is null',
-            ]);  
+            ]);
 
 			foreach ($request->items as $item) {
 				$orderItem = new OrderItem();
@@ -669,5 +669,67 @@ class OrderController extends Controller
 	            'message' => 'OK',
 	        ]);
 		}
+    }
+
+    public function getPrintProviders(Request $request)
+    {
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => "https://api.printify.com/v1/catalog/blueprints/" . $request->blueprint_id . "/print_providers.json ",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "GET",
+            CURLOPT_HTTPHEADER => array(
+                "Authorization: Bearer ".Auth::user()->printify_api."",
+            ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+        $result =  json_decode($response,true);
+
+        if (array_key_exists('error', $result)) return "ERROR:Invalid Request";;
+
+        return response()->json([
+            'success' => 1,
+            'message' => 'Get print providers success',
+            'data' => $result
+        ]);
+    }
+
+    public function getVariants(Request $request)
+    {
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => "https://api.printify.com/v1/catalog/blueprints/" . $request->blueprint_id . "/print_providers/" . $request->print_provider_id . "/variants.json",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "GET",
+            CURLOPT_HTTPHEADER => array(
+                "Authorization: Bearer ".Auth::user()->printify_api."",
+            ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+        $result =  json_decode($response,true);
+
+        if (array_key_exists('error', $result)) return "ERROR:Invalid Request";;
+
+        return response()->json([
+            'success' => 1,
+            'message' => 'Get variants success',
+            'data' => $result
+        ]);
     }
 }
