@@ -70,10 +70,11 @@ class PrintProviderController extends Controller
         $obj =  json_decode($response,true);
         
         // print_r($obj);
-        exit();
+        // exit();
+    }
 
-        // if($obj['status'] == 'error'){
-        //     exit("response: ".$obj['message']." (".$obj['status'].")");
-        // }
+    public function createOrder()
+    {
+        
     }
 }
