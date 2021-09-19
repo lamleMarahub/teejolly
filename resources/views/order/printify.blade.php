@@ -266,7 +266,7 @@ function submitGearmentForm() {
                                 </div>
                                 <div class="col">
                                     <label class="text-danger">Design</label>
-                                    <input type="text" class="form-control" placeholder="123456">
+                                    <input type="text" class="form-control" name="{{$item->id}}_design_id" placeholder="123456">
                                 </div>
                             </div>
                         </td>
@@ -292,7 +292,7 @@ function submitGearmentForm() {
                     <tr class="table-warning">
                         <td colspan="2">
                             <div class="row">
-                                <div class="col-4">
+                                <div class="col-3">
                                     <label class="text-danger">Product</label>
                                     <div>
                                         <select class="gearment js-example-basic-single" style="width: 100%" name="{{$item->id}}_product_id">
@@ -300,7 +300,7 @@ function submitGearmentForm() {
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-4">
+                                <div class="col-3">
                                     <label class="text-danger">Variants of a Style</label>
                                     <div class="">
                                         <select class="gearment js-example-basic-single" style="width: 100%" name="{{$item->id}}_variant_id">
@@ -308,11 +308,15 @@ function submitGearmentForm() {
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-4">
+                                <div class="col-3">
                                     <label class="text-danger">Mock up</label>
                                     <div class="">
                                         <img class="{{$item->id}}_mockup_img" src="https://account.gearment.com/sellerv2/assets/custom/no-photo.png" style="max-width: 100px;">
                                     </div>
+                                </div>
+                                <div class="col-3">
+                                    <label class="text-danger">Design</label>
+                                    <input type="text" class="form-control" name="{{$item->id}}_design_id" placeholder="123456">
                                 </div>
                             </div>
                         </td>
