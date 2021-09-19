@@ -18,6 +18,8 @@ $(document).ready(function(){
 
     $('.js-example-basic-single').select2();
 
+    // $('#myTab li:last-child a').tab('show')
+
     /**
      *
      */
@@ -89,15 +91,28 @@ $(document).ready(function(){
  *
  */
 function submitOrderForm() {
+    console.log($('#orderForm').serializeArray())
     var formdata = $('#orderForm').serializeArray().reduce((total, cur)=>{
         total[cur.name] = cur.value
         return total
     }, {})
     console.log('formdata=', formdata)
+
+    if (formdata.print_provider_id == 0 || formdata.variant_id == 0) {
+        alert('Hãy chọn đầy đủ thông tin')
+    }
 }
 
 </script>
 <div class="container" style="border:1px solid #cecece; padding:20px">
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link active" id="printifyTab" data-toggle="tab" href="#printify" role="tab" aria-controls="printify" aria-selected="true">1. printify</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="gearmentTab" data-toggle="tab" href="#gearment" role="tab" aria-controls="gearment" aria-selected="false">2. gearment</a>
+        </li>
+    </ul>
     <form id='orderForm'>
         <h3>Order Id: #{{$order->amz_order_id}}</h3>
         <table class="table table-borderless table-hover">
