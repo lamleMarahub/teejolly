@@ -134,7 +134,7 @@ $(document).ready(function(){
         const $variant = $(`select[name=${itemId}_variant_id].gearment`).empty()
 
         choosenProduct.variants.forEach(element => {
-            $variant.append(`<option value="${element.variant_id}">${element.name}</option>`)
+            $variant.append(`<option ${element.availability_status === 'in_stock' ? '' : 'disabled="disabled"'}" value="${element.variant_id}">${element.color} - ${element.size}</option>`)
         });
 
         $(`img.${itemId}_mockup_img`).attr('src', choosenProduct.product_img + '?x=' + new Date().getTime())
