@@ -18,11 +18,11 @@ class PrintProviderController extends Controller
     {
         $this->middleware('auth.seller');
         $this->pagesize = env('PAGINATION_PAGESIZE', 40);
-    } 
+    }
 
     // Gearment
     public function getProductVariants()
-    {    	
+    {
     	$curl = curl_init();
         curl_setopt_array($curl, array(
         CURLOPT_URL => "https://account.gearment.com/api/v2/?act=products",
@@ -38,21 +38,21 @@ class PrintProviderController extends Controller
             "Content-Type: application/json"
         ),
         ));
-        
+
         $response = curl_exec($curl);
         curl_close($curl);
-        
+
         print_r($response);
 
         $obj =  json_decode($response,true);
-        
+
         // print_r($obj);
         // exit();
     }
 
     public function createOrder()
     {
-        
+
     }
 
     // Webhook:
@@ -70,5 +70,67 @@ class PrintProviderController extends Controller
 
     public function order_completed(Request $request){
         return 1;
+    }
+
+    public function getPrintifyPrintProviders(Request $request)
+    {
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => "https://api.printify.com/v1/catalog/blueprints/" . $request->blueprint_id . "/print_providers.json ",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "GET",
+            CURLOPT_HTTPHEADER => array(
+                "Authorization: Bearer ".Auth::user()->printify_api."",
+            ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+        $result =  json_decode($response,true);
+
+        if (array_key_exists('error', $result)) return "ERROR:Invalid Request";;
+
+        return response()->json([
+            'success' => 1,
+            'message' => 'Get print providers success',
+            'data' => $result
+        ]);
+    }
+
+    public function getPrintifyVariants(Request $request)
+    {
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => "https://api.printify.com/v1/catalog/blueprints/" . $request->blueprint_id . "/print_providers/" . $request->print_provider_id . "/variants.json",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "GET",
+            CURLOPT_HTTPHEADER => array(
+                "Authorization: Bearer ".Auth::user()->printify_api."",
+            ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+        $result =  json_decode($response,true);
+
+        if (array_key_exists('error', $result)) return "ERROR:Invalid Request";;
+
+        return response()->json([
+            'success' => 1,
+            'message' => 'Get variants success',
+            'data' => $result
+        ]);
     }
 }

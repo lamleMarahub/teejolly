@@ -41,8 +41,12 @@ Route::post('order/ajaxTeescape', 'OrderController@ajaxTeescape');
 Route::post('order/ajaxDelete', 'OrderController@ajaxDelete');
 Route::get('order/statistic', 'OrderController@statistic');
 Route::get('order/create/{id}', 'OrderController@createOrder');
-Route::post('order/print-providers', 'OrderController@getPrintProviders');
-Route::post('order/variants', 'OrderController@getVariants');
+
+// Print provider
+Route::post('print-providers/printify/providers', 'PrintProviderController@getPrintifyPrintProviders');
+Route::post('print-providers/printify/variants', 'PrintProviderController@getPrintifyVariants');
+Route::post('print-providers/gearment/providers', 'PrintProviderController@getGearmentPrintProviders');
+Route::post('print-providers/gearment/variants', 'PrintProviderController@getGearmentVariants');
 
 // Design
 Route::get('design/upload', 'DesignController@upload');
