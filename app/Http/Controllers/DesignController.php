@@ -826,8 +826,8 @@ class DesignController extends Controller
         ]);
     }
 
-    public function getAmazonDesignImage($designId) {
-        $design = Design::find($designId);
+    public function getAmazonDesignImage(Request $request) {
+        $design = Design::find($request->design_id);
         if (!$design) {
             return response()->json([
                 'message' => 'Design image not found'

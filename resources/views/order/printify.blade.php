@@ -33,7 +33,8 @@ $(document).ready(function(){
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
+        },
+        async:true
     });
 
     $('.js-example-basic-single').select2({width: 'resolve'});
@@ -53,14 +54,27 @@ $(document).ready(function(){
         updateProviderList(itemId, [{id:0, title:'-- Loading --'}], false)
         updateVariantsList(itemId, [{id:0, title:'-- Loading --'}], false)
 
-        $.post(
-            "{{url('/print-providers/printify/providers')}}",
-            {blueprint_id: this.value}
-        ).done(function(res) {
-            updateProviderList(itemId, res.data, true)
-        }).fail(function() {
-            alert( "error" );
-        });
+        $.ajax({
+            url : "{{url('/print-providers/printify/providers')}}",
+            type: 'POST',
+            data: {blueprint_id: this.value},
+            async: true,
+            success : function(res) {
+                updateProviderList(itemId, res.data, true)
+            },
+            error: function(err) {
+                alert( "error" );
+            }
+        })
+
+        // $.post(
+        //     "{{url('/print-providers/printify/providers')}}",
+        //     {blueprint_id: this.value}
+        // ).done(function(res) {
+        //     updateProviderList(itemId, res.data, true)
+        // }).fail(function() {
+        //     alert( "error" );
+        // });
     }).trigger('change');
 
     /**
@@ -89,17 +103,33 @@ $(document).ready(function(){
 
         updateVariantsList(itemId, [{id:0, title:'-- Loading --'}], false)
 
-        $.post(
-            "{{url('/print-providers/printify/variants')}}",
-            {
+        $.ajax({
+            url : "{{url('/print-providers/printify/variants')}}",
+            type: 'POST',
+            data: {
                 blueprint_id: $(`select[name=${itemId}_blueprint_id].printify`).val(),
                 print_provider_id: this.value
+            },
+            async: true,
+            success : function(res) {
+                updateVariantsList(itemId, res.data.variants, true)
+            },
+            error: function(err) {
+                alert( "error" );
             }
-        ).done(function(res) {
-            updateVariantsList(itemId, res.data.variants, true)
-        }).fail(function() {
-            alert( "error" );
-        });
+        })
+
+        // $.post(
+        //     "{{url('/print-providers/printify/variants')}}",
+        //     {
+        //         blueprint_id: $(`select[name=${itemId}_blueprint_id].printify`).val(),
+        //         print_provider_id: this.value
+        //     }
+        // ).done(function(res) {
+        //     updateVariantsList(itemId, res.data.variants, true)
+        // }).fail(function() {
+        //     alert( "error" );
+        // });
     })
 
     /**
@@ -123,22 +153,43 @@ $(document).ready(function(){
 
     var $gearmentSelects = $('select[name$=product_id].gearment').empty()
     $gearmentSelects.append(`<option value=0>-- Loading --</option>`)
-    $.post(
-        "{{url('/print-providers/gearment/products')}}",
-        {}
-    ).done(function(res) {
-        GEARMENT_PRODUCTS = res.data.result
 
-        $gearmentSelects.empty()
+    $.ajax({
+        url : "{{url('/print-providers/gearment/products')}}",
+        type: 'POST',
+        data: {},
+        async: true,
+        success : function(res) {
+            GEARMENT_PRODUCTS = res.data.result
 
-        $gearmentSelects.append(`<option value=0>-- Choose product --</option>`)
-        res.data.result.forEach(element => {
-            $gearmentSelects.append(`<option value="${element.product_id}">${element.product_name}</option>`)
-        });
+            $gearmentSelects.empty()
 
-    }).fail(function() {
-        alert( "error" );
-    });
+            $gearmentSelects.append(`<option value=0>-- Choose product --</option>`)
+            res.data.result.forEach(element => {
+                $gearmentSelects.append(`<option value="${element.product_id}">${element.product_name}</option>`)
+            });
+        },
+        error: function(err) {
+            alert( "error" );
+        }
+    })
+
+    // $.post(
+    //     "{{url('/print-providers/gearment/products')}}",
+    //     {}
+    // ).done(function(res) {
+    //     GEARMENT_PRODUCTS = res.data.result
+
+    //     $gearmentSelects.empty()
+
+    //     $gearmentSelects.append(`<option value=0>-- Choose product --</option>`)
+    //     res.data.result.forEach(element => {
+    //         $gearmentSelects.append(`<option value="${element.product_id}">${element.product_name}</option>`)
+    //     });
+
+    // }).fail(function() {
+    //     alert( "error" );
+    // });
 
     $gearmentSelects.on('change', function() {
         const chooseProductId = this.value
@@ -177,15 +228,30 @@ $(document).ready(function(){
         const $targetImg = $(`img[class=${itemId}_design_img][provider=${provider}]`)
         const $designImgUrlInput = $(`input[name=${itemId}_design_img_url][provider=${provider}]`)
 
-        $.get(
-            `/design/${designId}/img`
-        ).done(function(res) {
-            $targetImg.attr('src', AMAZON_IMG_PREFIX + res.thumbnail + '?x=' + new Date().getTime())
-            $designImgUrlInput.val(AMAZON_IMG_PREFIX + res.filename)
-        }).fail(function(err) {
-            $targetImg.attr('src', '#').prop('alt', err.responseJSON.message)
-            $designImgUrlInput.val(0)
-        });
+        $.ajax({
+            url : "{{url('/design/img')}}",
+            type: 'POST',
+            data: {design_id: designId},
+            async: true,
+            success : function(res) {
+                $targetImg.attr('src', AMAZON_IMG_PREFIX + res.thumbnail + '?x=' + new Date().getTime())
+                $designImgUrlInput.val(AMAZON_IMG_PREFIX + res.filename)
+            },
+            error: function(err) {
+                $targetImg.attr('src', '#').prop('alt', err.responseJSON.message)
+                $designImgUrlInput.val(0)
+            }
+        })
+
+        // $.get(
+        //     `/design/${designId}/img`
+        // ).done(function(res) {
+        //     $targetImg.attr('src', AMAZON_IMG_PREFIX + res.thumbnail + '?x=' + new Date().getTime())
+        //     $designImgUrlInput.val(AMAZON_IMG_PREFIX + res.filename)
+        // }).fail(function(err) {
+        //     $targetImg.attr('src', '#').prop('alt', err.responseJSON.message)
+        //     $designImgUrlInput.val(0)
+        // });
     })
 });
 

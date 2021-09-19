@@ -67,7 +67,7 @@ Route::post('design/ajaxSearchCollection', 'DesignController@ajaxSearchCollectio
 Route::post('design/ajaxAddCollections', 'DesignController@ajaxAddCollections');
 Route::post('design/ajaxUpdateDesign', 'DesignController@ajaxUpdateDesign');
 Route::post('design/ajaxGetDesign', 'DesignController@ajaxGetDesign');
-Route::get('design/{designId}/img', 'DesignController@getAmazonDesignImage');
+Route::post('design/img', 'DesignController@getAmazonDesignImage');
 
 Route::resource('design', 'DesignController');
 
