@@ -825,4 +825,19 @@ class DesignController extends Controller
             'data' => $design
         ]);
     }
+
+    public function getAmazonDesignImage($designId) {
+        $design = Design::find($designId);
+        if (!$design) {
+            return response()->json([
+                'message' => 'Design image not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => 1,
+            'thumbnail' => $design->thumbnail,
+            'filename' => $design->filename
+        ]);
+    }
 }

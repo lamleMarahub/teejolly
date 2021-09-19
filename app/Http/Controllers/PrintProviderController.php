@@ -69,11 +69,11 @@ class PrintProviderController extends Controller
         return 1;
     }
 
-    public function order_canceled(Request $request){
+    public function order_canceled(Request $request) {
         return 1;
     }
 
-    public function order_completed(Request $request){
+    public function order_completed(Request $request) {
         return 1;
     }
 

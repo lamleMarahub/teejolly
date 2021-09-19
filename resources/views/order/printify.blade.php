@@ -12,7 +12,22 @@
     }
 </style>
 <script>
-var gearmentProducts = [];
+var GEARMENT_PRODUCTS = [];
+const AMAZON_IMG_PREFIX = 'https://s3.amazonaws.com/teejolly-prod/'
+const FULL_NAME = "{{$order->full_name}}"
+const ADDRESS = {
+    first_name: FULL_NAME.split(' ')[0],
+    last_name: FULL_NAME.split(' ').slice(1).join(' '),
+    email: "",
+    phone: "",
+    country: "US",
+    region: "{{$order->state}}",
+    address1: "{{$order->address_1}}",
+    address2: " {{$order->address_2}}",
+    city: "{{$order->city}}",
+    zip: "{{$order->zip_code}}"
+}
+const UUID = "{{$uuid}}"
 
 $(document).ready(function(){
     $.ajaxSetup({
@@ -112,7 +127,7 @@ $(document).ready(function(){
         "{{url('/print-providers/gearment/products')}}",
         {}
     ).done(function(res) {
-        gearmentProducts = res.data.result
+        GEARMENT_PRODUCTS = res.data.result
 
         $gearmentSelects.empty()
 
@@ -129,7 +144,7 @@ $(document).ready(function(){
         const chooseProductId = this.value
         const selectName = $(this).attr('name')
         const itemId = selectName.split('_')[0]
-        const choosenProduct = gearmentProducts.find(item => item.product_id == chooseProductId)
+        const choosenProduct = GEARMENT_PRODUCTS.find(item => item.product_id == chooseProductId)
 
         const $variant = $(`select[name=${itemId}_variant_id].gearment`).empty()
 
@@ -146,13 +161,32 @@ $(document).ready(function(){
         const selectName = $(this).attr('name')
         const itemId = selectName.split('_')[0]
         const productId = $(`select[name$=${itemId}_product_id].gearment`).val()
-        const choosenProduct = gearmentProducts.find(item => item.product_id == productId)
+        const choosenProduct = GEARMENT_PRODUCTS.find(item => item.product_id == productId)
         const choosenVariant = choosenProduct.variants.find(item => item.variant_id == this.value)
 
         $(`img.${itemId}_mockup_img`).css("background", `#${choosenVariant.hex_color_code}`);
     })
     // END GEARMENT
     // ///////////////////////////////////////////////////////
+
+    $('input[name$=design_id]').on('change', function() {
+        const selectName = $(this).attr('name')
+        const itemId = selectName.split('_')[0]
+        const designId = this.value
+        const provider = $(this).attr('provider')
+        const $targetImg = $(`img[class=${itemId}_design_img][provider=${provider}]`)
+        const $designImgUrlInput = $(`input[name=${itemId}_design_img_url][provider=${provider}]`)
+
+        $.get(
+            `/design/${designId}/img`
+        ).done(function(res) {
+            $targetImg.attr('src', AMAZON_IMG_PREFIX + res.thumbnail + '?x=' + new Date().getTime())
+            $designImgUrlInput.val(AMAZON_IMG_PREFIX + res.filename)
+        }).fail(function(err) {
+            $targetImg.attr('src', '#').prop('alt', err.responseJSON.message)
+            $designImgUrlInput.val(0)
+        });
+    })
 });
 
 /**
@@ -183,6 +217,31 @@ function submitPrintifyForm() {
     }, {})
 
     var processedFormdata = Object.entries(formdata).map(item => item[1])
+
+    console.log('processedFormdata=', processedFormdata)
+
+    const postdata = {
+        external_id: UUID,
+        label: "PRINTIFY",
+        line_items: processedFormdata.map(item=> (
+            {
+                print_provider_id: item.print_provider_id,
+                blueprint_id: item.blueprint_id,
+                variant_id: item.variant_id,
+                print_areas: {
+                    front: item.design_img_url
+                },
+                quantity: item.quantity
+            }
+        )),
+        shipping_method: 1,
+        send_shipping_notification: false,
+        address_to: ADDRESS
+    }
+
+    console.log('postdata=', postdata)
+    var jsonPretty = JSON.stringify(postdata, null, '\t');
+    $('#printifyPostData').text(jsonPretty)
 }
 
 /**
@@ -266,7 +325,12 @@ function submitGearmentForm() {
                                 </div>
                                 <div class="col">
                                     <label class="text-danger">Design</label>
-                                    <input type="text" class="form-control" name="{{$item->id}}_design_id" placeholder="123456">
+                                    <input type="number" class="form-control" name="{{$item->id}}_design_id" provider="printify" placeholder="123456">
+                                    <input type="hidden" name="{{$item->id}}_design_img_url" provider="printify">
+                                    <input type="hidden" name="{{$item->id}}_quantity" provider="printify" value="{{$item->quantity}}">
+                                    <div>
+                                        <img class="{{$item->id}}_design_img" provider="printify" src='' alt='design preview' style='width: 100%' />
+                                    </div>
                                 </div>
                             </div>
                         </td>
@@ -276,6 +340,7 @@ function submitGearmentForm() {
                 <div class="row" style="padding-top:20px">
                     <div class="col">
                         <button type="button" class="btn btn-primary col-12" onclick="submitPrintifyForm()">Submit Printify Order</button>
+                        <pre id='printifyPostData'></pre>
                     </div>
                 </div>
             </form>
@@ -316,7 +381,12 @@ function submitGearmentForm() {
                                 </div>
                                 <div class="col-3">
                                     <label class="text-danger">Design</label>
-                                    <input type="text" class="form-control" name="{{$item->id}}_design_id" placeholder="123456">
+                                    <input type="number" class="form-control" name="{{$item->id}}_design_id" provider="gearment" placeholder="123456">
+                                    <input type="hidden" class="form-control" name="{{$item->id}}_design_img_url" provider="gearment">
+                                    <input type="hidden" name="{{$item->id}}_quantity" provider="gearment" value="{{$item->quantity}}">
+                                    <div>
+                                        <img class="{{$item->id}}_design_img" provider="gearment" src='' alt='design preview' style='width: 100%' />
+                                    </div>
                                 </div>
                             </div>
                         </td>
