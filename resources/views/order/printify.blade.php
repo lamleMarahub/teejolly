@@ -7,8 +7,13 @@
     span.select2-selection.select2-selection--single {
         height: calc(1.6em + 0.75rem + 2px);
     }
+    .select2-container--default .select2-results > .select2-results__options {
+        max-height: 400px;
+    }
 </style>
 <script>
+var gearmentProducts = [];
+
 $(document).ready(function(){
     $.ajaxSetup({
         headers: {
@@ -16,7 +21,7 @@ $(document).ready(function(){
         }
     });
 
-    $('.js-example-basic-single').select2();
+    $('.js-example-basic-single').select2({width: 'resolve'});
 
     // $('#myTab li:last-child a').tab('show')
 
@@ -98,8 +103,56 @@ $(document).ready(function(){
     // END PRINTIFY
     // ///////////////////////////////////////////////////////
 
+    // ///////////////////////////////////////////////////////
+    // GEARMENT
 
+    var $gearmentSelects = $('select[name$=product_id].gearment').empty()
+    $gearmentSelects.append(`<option value=0>-- Loading --</option>`)
+    $.post(
+        "{{url('/print-providers/gearment/products')}}",
+        {}
+    ).done(function(res) {
+        gearmentProducts = res.data.result
 
+        $gearmentSelects.empty()
+
+        $gearmentSelects.append(`<option value=0>-- Choose product --</option>`)
+        res.data.result.forEach(element => {
+            $gearmentSelects.append(`<option value="${element.product_id}">${element.product_name}</option>`)
+        });
+
+    }).fail(function() {
+        alert( "error" );
+    });
+
+    $gearmentSelects.on('change', function() {
+        const chooseProductId = this.value
+        const selectName = $(this).attr('name')
+        const itemId = selectName.split('_')[0]
+        const choosenProduct = gearmentProducts.find(item => item.product_id == chooseProductId)
+
+        const $variant = $(`select[name=${itemId}_variant_id].gearment`).empty()
+
+        choosenProduct.variants.forEach(element => {
+            $variant.append(`<option value="${element.variant_id}">${element.name}</option>`)
+        });
+
+        $(`img.${itemId}_mockup_img`).attr('src', choosenProduct.product_img + '?x=' + new Date().getTime())
+
+        $variant.trigger('change')
+    })
+
+    $('select[name$=variant_id].gearment').on('change', function() {
+        const selectName = $(this).attr('name')
+        const itemId = selectName.split('_')[0]
+        const productId = $(`select[name$=${itemId}_product_id].gearment`).val()
+        const choosenProduct = gearmentProducts.find(item => item.product_id == productId)
+        const choosenVariant = choosenProduct.variants.find(item => item.variant_id == this.value)
+
+        $(`img.${itemId}_mockup_img`).css("background", `#${choosenVariant.hex_color_code}`);
+    })
+    // END GEARMENT
+    // ///////////////////////////////////////////////////////
 });
 
 /**
@@ -130,6 +183,38 @@ function submitPrintifyForm() {
     }, {})
 
     var processedFormdata = Object.entries(formdata).map(item => item[1])
+}
+
+/**
+ *
+ */
+function submitGearmentForm() {
+    for (const element of $('#gearmentForm').serializeArray()) {
+        if (element.value == 0) {
+            alert('Hãy chọn đầy đủ thông tin')
+            return;
+        }
+    }
+
+    var formdata = $('#gearmentForm').serializeArray().reduce((total, cur) => {
+        var itemId = cur.name.split('_')[0]
+        var nameKey = cur.name.split('_').slice(1).join('_')
+
+        if (!total[itemId]) {
+            total[itemId] = {}
+            total[itemId]['order_id'] = itemId
+        }
+
+        if (!total[itemId][nameKey]) {
+            total[itemId][nameKey] = cur.value
+        }
+
+        return total
+    }, {})
+
+    var processedFormdata = Object.entries(formdata).map(item => item[1])
+
+    console.log('processedFormdata=', processedFormdata)
 }
 
 </script>
@@ -203,6 +288,34 @@ function submitPrintifyForm() {
                     <tr>
                         <td><img src="{{str_replace("._SCLZZZZZZZ__SX55_", "", $item->thumbnail)}}" alt="{{$item->product_name}}" class="img-thumbnail" style="max-width: 150px; max-height: 150px;"></td>
                         <td><h3 style="padding-top:10px">{{$item->product_name}} ({{$item->style}}; {{$item->size}}; {{$item->color}})</h3></td>
+                    </tr>
+                    <tr class="table-warning">
+                        <td colspan="2">
+                            <div class="row">
+                                <div class="col-4">
+                                    <label class="text-danger">Product</label>
+                                    <div>
+                                        <select class="gearment js-example-basic-single" style="width: 100%" name="{{$item->id}}_product_id">
+                                            <option value="0">-- Loading --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <label class="text-danger">Variants of a Style</label>
+                                    <div class="">
+                                        <select class="gearment js-example-basic-single" style="width: 100%" name="{{$item->id}}_variant_id">
+                                            <option value="0">-- Loading --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <label class="text-danger">Mock up</label>
+                                    <div class="">
+                                        <img class="{{$item->id}}_mockup_img" src="https://account.gearment.com/sellerv2/assets/custom/no-photo.png" style="max-width: 100px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
                     </tr>
                     @endforeach
                 </table>

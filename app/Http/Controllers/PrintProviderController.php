@@ -42,12 +42,17 @@ class PrintProviderController extends Controller
         $response = curl_exec($curl);
         curl_close($curl);
 
-        print_r($response);
+        // print_r($response);
 
         $obj =  json_decode($response,true);
 
         // print_r($obj);
         // exit();
+        return response()->json([
+            'success' => 1,
+            'message' => 'Get gearment products',
+            'data' => $obj
+        ]);
     }
 
     public function createOrder()
