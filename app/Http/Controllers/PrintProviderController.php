@@ -194,8 +194,17 @@ class PrintProviderController extends Controller
         // curl_close($curl);
         // echo $response;
         
+        // Save DB if success ;  
         $result = [];
-        $curl = curl_init();
+        $id = $request->get('orderid');
+        $order = Order::find($id);
+        if(!$order) return response()->json([
+            'success' => 0,
+            'message' => "Order not found",
+            'data' =>  $result,
+        ]);
+
+        $curl = curl_init();     
 
         curl_setopt_array($curl, array(
             CURLOPT_URL => "https://api.printify.com/v1/shops/3558273/orders.json",
@@ -215,15 +224,13 @@ class PrintProviderController extends Controller
 
         $response = curl_exec($curl);
         curl_close($curl);
-
         $result =  json_decode($response,true);
-
-        // Save DB if success ;  
-
+        // if success -- save DB fulfillment_id
+        
         return response()->json([
             'success' => 1,
             'message' => "Submit Order",
-            'success' => $result,
+            'data' => $result,
         ]);
     }
 }

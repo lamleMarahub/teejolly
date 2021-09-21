@@ -291,6 +291,7 @@ function submitPrintifyForm() {
     const designId = $('input[name$=design_id]').val();
     // alert(designId)
     const UUID = "{{$order->amz_order_id}}"
+    const order_id = "{{$order->id}}"
     // alert(UUID)
     const postdata = {
         external_id: UUID,
@@ -314,7 +315,7 @@ function submitPrintifyForm() {
     $.ajax({
         url : "{{url('/print-providers/printify/create')}}",
         type: 'POST',
-        data: {postdata: postdata},
+        data: {postdata: postdata, orderid: orderid},
         async: true,
         success : function(res) {
             alert('success')
