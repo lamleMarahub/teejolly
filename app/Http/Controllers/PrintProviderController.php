@@ -142,8 +142,9 @@ class PrintProviderController extends Controller
     public function createPrintifyOrder(Request $request)
     {
         $result = [];
-        $id = $request->get('orderid');
+        $id = $request->get('order_id');
         $order = Order::find($id);
+
         if(!$order) return response()->json([
             'success' => 0,
             'message' => "Order not found",
