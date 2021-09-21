@@ -19,7 +19,7 @@ const ADDRESS = {
     first_name: FULL_NAME.split(' ')[0],
     last_name: FULL_NAME.split(' ').slice(1).join(' '),
     email: "",
-    phone: "",
+    phone: "0327570057",
     country: "US",
     region: "{{$order->state}}",
     address1: "{{$order->address_1}}",
@@ -200,10 +200,12 @@ $(document).ready(function(){
         const $variant = $(`select[name=${itemId}_variant_id].gearment`).empty()
 
         choosenProduct.variants.forEach(element => {
-            $variant.append(`<option ${element.availability_status === 'in_stock' ? '' : 'disabled="disabled"'}" value="${element.variant_id}">${element.color} - ${element.size}</option>`)
+            // $variant.append(`<option ${element.availability_status === 'in_stock' ? '' : 'disabled="disabled"'}" value="${element.variant_id}">${element.color} - ${element.size}</option>`);
+            $variant.append(`<option ${element.availability_status === 'in_stock' ? '' : 'disabled="disabled"'} value="${element.variant_id}">${element.color} - ${element.size}</option>`);
+            // alert(`<option ${element.availability_status === 'in_stock' ? '' : 'disabled="disabled"'} value="${element.variant_id}">${element.color} - ${element.size}</option>`)
         });
 
-        $(`img.${itemId}_mockup_img`).attr('src', choosenProduct.product_img + '?x=' + new Date().getTime())
+        // $(`img.${itemId}_mockup_img`).attr('src', choosenProduct.product_img + '?x=' + new Date().getTime())
 
         $variant.trigger('change')
     })
@@ -215,7 +217,7 @@ $(document).ready(function(){
         const choosenProduct = GEARMENT_PRODUCTS.find(item => item.product_id == productId)
         const choosenVariant = choosenProduct.variants.find(item => item.variant_id == this.value)
 
-        $(`img.${itemId}_mockup_img`).css("background", `#${choosenVariant.hex_color_code}`);
+        // $(`img.${itemId}_mockup_img`).css("background", `#${choosenVariant.hex_color_code}`);
     })
     // END GEARMENT
     // ///////////////////////////////////////////////////////
@@ -286,12 +288,16 @@ function submitPrintifyForm() {
 
     console.log('processedFormdata=', processedFormdata)
 
+    const designId = $('input[name$=design_id]').val();
+    // alert(designId)
+    const UUID = "{{$order->amz_order_id}}"
+    // alert(UUID)
     const postdata = {
         external_id: UUID,
-        label: "PRINTIFY",
+        label: designId,
         line_items: processedFormdata.map(item=> (
             {
-                print_provider_id: item.print_provider_id,
+                print_provider_id: item.print_provider_id,  
                 blueprint_id: item.blueprint_id,
                 variant_id: item.variant_id,
                 print_areas: {
@@ -304,6 +310,19 @@ function submitPrintifyForm() {
         send_shipping_notification: false,
         address_to: ADDRESS
     }
+    
+    $.ajax({
+        url : "{{url('/print-providers/printify/create')}}",
+        type: 'POST',
+        data: {postdata: postdata},
+        async: true,
+        success : function(res) {
+            alert('success')
+        },
+        error: function(err) {
+            alert('false')
+        }
+    })
 
     console.log('postdata=', postdata)
     var jsonPretty = JSON.stringify(postdata, null, '\t');
@@ -355,12 +374,15 @@ function submitGearmentForm() {
     <div class="tab-content">
         <div class="tab-pane active" id="printify" role="tabpanel" aria-labelledby="printify-tab">
             <form id='printifyForm'>
-                <h3>Order Id: #{{$order->amz_order_id}}</h3>
+                <h3 style="padding-top:10px">Order Id: #{{$order->amz_order_id}}</h3>
                 <table class="table table-borderless table-hover">
                     @foreach($orderItems as $item)
                     <tr>
                         <td><img src="{{str_replace("._SCLZZZZZZZ__SX55_", "", $item->thumbnail)}}" alt="{{$item->product_name}}" class="img-thumbnail" style="max-width: 150px; max-height: 150px;"></td>
-                        <td><h3 style="padding-top:10px">{{$item->product_name}} ({{$item->style}}; {{$item->size}}; {{$item->color}})</h3></td>
+                        <td>
+                            <h3 style="padding-top:10px">{{$item->product_name}} ({{$item->style}}; {{$item->size}}; {{$item->color}})</h3>
+                            <h4>ASIN: <strong><a href="https://amazon.com/dp/{{$item -> asin}}" target="_blank">{{$item -> asin}}</a></strong> - SKU: <strong>{{$item -> sku}}</strong></h4>
+                        </td>
                     </tr>
                     <tr class="table-warning">
                         <td colspan="2">
@@ -391,11 +413,11 @@ function submitGearmentForm() {
                                 </div>
                                 <div class="col">
                                     <label class="text-danger">Design</label>
-                                    <input type="number" class="form-control" name="{{$item->id}}_design_id" provider="printify" placeholder="123456">
+                                    <input type="number" class="form-control" name="{{$item->id}}_design_id" provider="printify" placeholder="18662">
                                     <input type="hidden" name="{{$item->id}}_design_img_url" provider="printify">
                                     <input type="hidden" name="{{$item->id}}_quantity" provider="printify" value="{{$item->quantity}}">
                                     <div>
-                                        <img class="{{$item->id}}_design_img" provider="printify" src='' alt='design preview' style='width: 100%' />
+                                        <img class="{{$item->id}}_design_img" provider="printify" src='' alt='design preview' style='width: 100%; padding-top: 5px' />
                                     </div>
                                 </div>
                             </div>
@@ -413,12 +435,15 @@ function submitGearmentForm() {
         </div>
         <div class="tab-pane" id="gearment" role="tabpanel" aria-labelledby="gearment-tab">
             <form id='gearmentForm'>
-                <h3>Order Id: #{{$order->amz_order_id}}</h3>
+                <h3 style="padding-top:10px">Order Id: #{{$order->amz_order_id}}</h3>
                 <table class="table table-borderless table-hover">
                     @foreach($orderItems as $item)
                     <tr>
                         <td><img src="{{str_replace("._SCLZZZZZZZ__SX55_", "", $item->thumbnail)}}" alt="{{$item->product_name}}" class="img-thumbnail" style="max-width: 150px; max-height: 150px;"></td>
-                        <td><h3 style="padding-top:10px">{{$item->product_name}} ({{$item->style}}; {{$item->size}}; {{$item->color}})</h3></td>
+                        <td>
+                            <h3 style="padding-top:10px">{{$item->product_name}} ({{$item->style}}; {{$item->size}}; {{$item->color}})</h3>
+                            <h4>ASIN: <strong><a href="https://amazon.com/dp/{{$item -> asin}}" target="_blank">{{$item -> asin}}</a></strong> - SKU: <strong>{{$item -> sku}}</strong></h4>
+                        </td>
                     </tr>
                     <tr class="table-warning">
                         <td colspan="2">
@@ -440,9 +465,16 @@ function submitGearmentForm() {
                                     </div>
                                 </div>
                                 <div class="col-3">
-                                    <label class="text-danger">Mock up</label>
-                                    <div class="">
+                                    <label class="text-danger">Shipping Method</label>
+                                    <!-- <div class="">
                                         <img class="{{$item->id}}_mockup_img" src="https://account.gearment.com/sellerv2/assets/custom/no-photo.png" style="max-width: 100px;">
+                                    </div> -->
+                                    <div class="">
+                                        <select class="gearment js-example-basic-single" style="width: 100%" name="{{$item->id}}_variant_id">
+                                            <option value="0">Standard</option>
+                                            <option value="1">Fastship 2days</option>
+                                            <option value="2" selected>Ground</option>                                            
+                                        </select>
                                     </div>
                                 </div>
                                 <div class="col-3">
@@ -451,7 +483,7 @@ function submitGearmentForm() {
                                     <input type="hidden" class="form-control" name="{{$item->id}}_design_img_url" provider="gearment">
                                     <input type="hidden" name="{{$item->id}}_quantity" provider="gearment" value="{{$item->quantity}}">
                                     <div>
-                                        <img class="{{$item->id}}_design_img" provider="gearment" src='' alt='design preview' style='width: 100%' />
+                                        <img class="{{$item->id}}_design_img" provider="gearment" src='' alt='design preview' style='width: 100%; padding-top: 5px' />
                                     </div>
                                 </div>
                             </div>

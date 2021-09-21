@@ -46,6 +46,7 @@ Route::get('order/create/{id}', 'OrderController@createOrder');
 Route::post('print-providers/printify/providers', 'PrintProviderController@getPrintifyPrintProviders');
 Route::post('print-providers/printify/variants', 'PrintProviderController@getPrintifyVariants');
 Route::post('print-providers/gearment/products', 'PrintProviderController@getProductVariants');
+Route::post('print-providers/printify/create', 'PrintProviderController@createPrintifyOrder');
 
 // Design
 Route::get('design/upload', 'DesignController@upload');
