@@ -200,13 +200,13 @@ class PrintProviderController extends Controller
         curl_setopt_array($curl, array(
             CURLOPT_URL => "https://api.printify.com/v1/shops/3558273/orders.json",
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
+            CURLOPT_ENCODING => "",            
             CURLOPT_MAXREDIRS => 10,
             CURLOPT_TIMEOUT => 0,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => "POST",
-            CURLOPT_POSTFIELDS => $request->all(),
+            CURLOPT_POSTFIELDS => json_encode($request->get('postdata')),
             CURLOPT_HTTPHEADER => array(
                 "Authorization: Bearer ".Auth::user()->printify_api."",
                 "Content-Type: application/json"
