@@ -291,6 +291,7 @@ function submitPrintifyForm() {
     const designId = $('input[name$=design_id][provider=printify]').val();
     // alert(designId)
     const UUID = "{{$order->amz_order_id}}"
+    const order_id = "{{$order->id}}"
     // alert(UUID)
     const postdata = {
         external_id: UUID,
