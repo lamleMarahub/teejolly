@@ -19,13 +19,13 @@ const ADDRESS = {
     first_name: FULL_NAME.split(' ')[0],
     last_name: FULL_NAME.split(' ').slice(1).join(' '),
     email: "",
-    phone: "0327570057",
+    phone: "0327570057[string]",
     country: "US",
     region: "{{$order->state}}",
     address1: "{{$order->address_1}}",
     address2: " {{$order->address_2}}",
     city: "{{$order->city}}",
-    zip: "{{$order->zip_code}}"
+    zip: "{{$order->zip_code}}[string]"
 }
 const UUID = "{{$uuid}}"
 
@@ -286,47 +286,47 @@ function submitPrintifyForm() {
 
     var processedFormdata = Object.entries(formdata).map(item => item[1])
 
-    console.log('processedFormdata=', processedFormdata)
+    // console.log('processedFormdata=', processedFormdata)
 
-    const designId = $('input[name$=design_id]').val();
+    const designId = $('input[name$=design_id][provider=printify]').val();
     // alert(designId)
     const UUID = "{{$order->amz_order_id}}"
     // alert(UUID)
     const postdata = {
         external_id: UUID,
-        label: designId,
+        label: UUID,
         line_items: processedFormdata.map(item=> (
             {
-                print_provider_id: item.print_provider_id,  
-                blueprint_id: item.blueprint_id,
-                variant_id: item.variant_id,
+                print_provider_id: +item.print_provider_id,
+                blueprint_id: +item.blueprint_id,
+                variant_id: +item.variant_id,
                 print_areas: {
                     front: item.design_img_url
                 },
-                quantity: item.quantity
+                quantity: +item.quantity
             }
         )),
         shipping_method: 1,
         send_shipping_notification: false,
         address_to: ADDRESS
     }
-    
+
     $.ajax({
         url : "{{url('/print-providers/printify/create')}}",
         type: 'POST',
-        data: {postdata: postdata},
+        data: {order_id: "{{$order->id}}", postdata: postdata},
         async: true,
         success : function(res) {
             alert('success')
         },
         error: function(err) {
-            alert('false')
+            alert(err.responseJSON.data.errors.reason)
         }
     })
 
-    console.log('postdata=', postdata)
-    var jsonPretty = JSON.stringify(postdata, null, '\t');
-    $('#printifyPostData').text(jsonPretty)
+    // console.log('postdata=', postdata)
+    // var jsonPretty = JSON.stringify(postdata, null, '\t');
+    // $('#printifyPostData').text(jsonPretty)
 }
 
 /**
@@ -358,7 +358,7 @@ function submitGearmentForm() {
 
     var processedFormdata = Object.entries(formdata).map(item => item[1])
 
-    console.log('processedFormdata=', processedFormdata)
+    // console.log('processedFormdata=', processedFormdata)
 }
 
 </script>
@@ -473,7 +473,7 @@ function submitGearmentForm() {
                                         <select class="gearment js-example-basic-single" style="width: 100%" name="{{$item->id}}_variant_id">
                                             <option value="0">Standard</option>
                                             <option value="1">Fastship 2days</option>
-                                            <option value="2" selected>Ground</option>                                            
+                                            <option value="2" selected>Ground</option>
                                         </select>
                                     </div>
                                 </div>

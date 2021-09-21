@@ -141,7 +141,7 @@ class PrintProviderController extends Controller
 
     public function createPrintifyOrder(Request $request)
     {
-        
+
         // print_r($request->all());
 
         // $curl = curl_init();
@@ -155,17 +155,17 @@ class PrintProviderController extends Controller
         //   CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         //   CURLOPT_CUSTOMREQUEST => 'POST',
         //   CURLOPT_POSTFIELDS =>'{
-        //     "external_id": "111-6703356-6301859",
+        //     "external_id": "111-6703356-6301859a",
         //     "label": "18662",
         //     "line_items": [
         //         {
-        //             "print_provider_id": 3,
-        //             "blueprint_id": 6,
-        //             "variant_id": 42716,
+        //             "print_provider_id": "3",
+        //             "blueprint_id": "6",
+        //             "variant_id": "42716",
         //             "print_areas": {
         //                 "front": "https://s3.amazonaws.com/teejolly-prod/images/d/210918/d18662/d-kZBJi-67.png"
         //             },
-        //             "quantity": 1
+        //             "quantity": "1"
         //         }
         //     ],
         //     "shipping_method": 1,
@@ -190,23 +190,47 @@ class PrintProviderController extends Controller
         // ));
 
         // $response = curl_exec($curl);
+        // curl_close($curl);
+
+        // $result =  json_decode($response,true);
+
+        // return response()->json([
+        //     'success' => 1,
+        //     'message' => "Submit Order",
+        //     'data' => $result,
+        // ]);
+
+        // $response = curl_exec($curl);
 
         // curl_close($curl);
         // echo $response;
-        
+
+        // return response()->json([
+        //     'success' => 1,
+        //     'message' => "Submit Order",
+        //     'data' => $postBody,
+        // ]);
+
         $result = [];
         $curl = curl_init();
+
+        $post_data = $request->get('postdata');
+        $post_data['send_shipping_notification'] = (bool)0; // 0/1 -> PHP false/true
+
+        $json_post_data = json_encode($post_data, JSON_NUMERIC_CHECK);
+        $json_post_data = str_replace('[string]', '', $json_post_data);
+        error_log($json_post_data);
 
         curl_setopt_array($curl, array(
             CURLOPT_URL => "https://api.printify.com/v1/shops/3558273/orders.json",
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",            
+            CURLOPT_ENCODING => "",
             CURLOPT_MAXREDIRS => 10,
             CURLOPT_TIMEOUT => 0,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => "POST",
-            CURLOPT_POSTFIELDS => json_encode($request->get('postdata')),
+            CURLOPT_POSTFIELDS => $json_post_data,
             CURLOPT_HTTPHEADER => array(
                 "Authorization: Bearer ".Auth::user()->printify_api."",
                 "Content-Type: application/json"
@@ -218,12 +242,28 @@ class PrintProviderController extends Controller
 
         $result =  json_decode($response,true);
 
-        // Save DB if success ;  
+        if (array_key_exists("errors", $result)) {
+            return response()->json([
+                'success' => 0,
+                'message' => "Submit Order",
+                'data' => $result,
+            ], 400);
+        }
+
+        error_log(json_encode($result));
+
+        // Save DB if success ;
+        $order = Order::find($request->get('order_id'));
+
+        $order->fulfillment_id = $result['id'];
+        $order->fulfillment_by = 'printify';
+
+        $order->save();
 
         return response()->json([
             'success' => 1,
             'message' => "Submit Order",
-            'success' => $result,
+            'data' => $result,
         ]);
     }
 }
