@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Order;
+use App\EtsyOrder;
 use App\User;
 use App\OrderItem;
 use Carbon\Carbon;
@@ -12,7 +13,7 @@ use DB;
 
 class PrintProviderController extends Controller
 {
-	protected $pagesize;
+    protected $pagesize;
 
     public function __construct()
     {
@@ -23,7 +24,7 @@ class PrintProviderController extends Controller
     // Gearment
     public function getProductVariants()
     {
-    	$curl = curl_init();
+        $curl = curl_init();
         curl_setopt_array($curl, array(
         CURLOPT_URL => "https://account.gearment.com/api/v2/?act=products",
         CURLOPT_RETURNTRANSFER => true,
@@ -41,13 +42,8 @@ class PrintProviderController extends Controller
 
         $response = curl_exec($curl);
         curl_close($curl);
-
-        // print_r($response);
-
         $obj =  json_decode($response,true);
 
-        // print_r($obj);
-        // exit();
         return response()->json([
             'success' => 1,
             'message' => 'Get gearment products',
@@ -55,9 +51,95 @@ class PrintProviderController extends Controller
         ]);
     }
 
-    public function createOrder()
+    public function createGearmentOrder(Request $request)
     {
+        $result = [];
 
+        if(!$request->has('order_type')) return response()->json([
+            'success' => 0,
+            'message' => 'order_type', 
+            'data' => $result
+        ]);
+
+        if($request->get('order_type') == 1){
+            $order = Order::find($request->get('order_id'));
+        }elseif($request->get('order_type') == 2){
+            $order = EtsyOrder::find($request->get('order_id'));
+        }else{
+            return response()->json([
+                'success' => 0,
+                'message' => 'order_type', 
+                'data' => $result
+            ]);
+        }
+
+        if(!$order || $order->status != 0) return response()->json([
+            'success' => 0,
+            'message' => "this order is already printed",
+            'data' =>  $result,
+        ]);
+
+        if(!in_array($order->owner_id, [1,$request->user()->id])) return response()->json([
+            'success' => 0,
+            'message' => "owner_id",
+            'data' =>  $result,
+        ]);       
+
+        $post_data = $request->get('postdata');
+        // $post_data['api_key'] = Auth::user()->gearment_api_key; 
+        // $post_data['api_signature'] = Auth::user()->gearment_api_signature; 
+
+        $post_data['api_key'] = "QBIVKPk3xTZEsYzI"; 
+        $post_data['api_signature'] = "HH2pU54NpWGPvY5OOpDtpG6Z5t7unFLO";
+        $post_data['shipping_method'] = $post_data['shipping_method'] - 1;
+
+        // $post_data['send_shipping_notification'] = (bool)0; // 0/1 -> PHP false/true
+        // $json_post_data = json_encode($post_data, JSON_NUMERIC_CHECK);
+        // $json_post_data = str_replace('[string]', '', $json_post_data);
+        // error_log($json_post_data);
+
+        // print_r($json_post_data);
+        // exit();
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://account.gearment.com/api/v2/?act=order_create',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => json_encode($post_data),
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: application/json',
+            ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+
+        $result =  json_decode($response,true);  
+
+        if($result['status'] == 'error'){
+            return response()->json([
+                'success' => 0,
+                'message' => $result['message'],
+                'data' => $result
+            ]);
+        }
+
+        $order->fulfillment_id = $result['result']['id'];
+        $order->fulfillment_by = 'gearment';
+        $order->status = 1;
+        $order->save();
+
+        return response()->json([
+            'success' => 1,
+            'message' => $result['message'],
+            'data' => $result,
+        ]);
     }
 
     // Webhook:
@@ -142,15 +224,37 @@ class PrintProviderController extends Controller
     public function createPrintifyOrder(Request $request)
     {
         $result = [];
-        $id = $request->get('order_id');
-        $order = Order::find($id);
 
-        if(!$order) return response()->json([
+        if(!$request->has('order_type')) return response()->json([
             'success' => 0,
-            'message' => "Order not found",
+            'message' => 'order_type', 
+            'data' => $result
+        ]);
+
+        if($request->get('order_type') == 1){
+            $order = Order::find($request->get('order_id'));
+        }elseif($request->get('order_type') == 2){
+            $order = EtsyOrder::find($request->get('order_id'));
+        }else{
+            return response()->json([
+                'success' => 0,
+                'message' => 'order_type', 
+                'data' => $result
+            ]);
+        }
+
+        if(!$order || $order->status != 0) return response()->json([
+            'success' => 0,
+            'message' => "this order is already printed",
             'data' =>  $result,
         ]);
 
+        if(!in_array($order->owner_id, [1,$request->user()->id])) return response()->json([
+            'success' => 0,
+            'message' => "owner_id",
+            'data' =>  $result,
+        ]); 
+            
         $curl = curl_init();
 
         $post_data = $request->get('postdata');
@@ -183,24 +287,21 @@ class PrintProviderController extends Controller
         if (array_key_exists("errors", $result)) {
             return response()->json([
                 'success' => 0,
-                'message' => "Submit Order",
+                'message' => $result['errors']['reason'],
                 'data' => $result,
             ], 400);
         }
-
+        // {"status":"error","code":8150,"message":"Validation failed.","errors":{"reason":"line_items.0.print_provider_id: The line_items.0.print_provider_id must be an integer.","code":8150}}
         // error_log(json_encode($result));
-
-        // Save DB if success ;
-        $order = Order::find($request->get('order_id'));
 
         $order->fulfillment_id = $result['id'];
         $order->fulfillment_by = 'printify';
-
+        $order->status = 1;
         $order->save();
 
         return response()->json([
             'success' => 1,
-            'message' => "Submit Order",
+            'message' => "[API] Add order successfully!",
             'data' => $result,
         ]);
     }

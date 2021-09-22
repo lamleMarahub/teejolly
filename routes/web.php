@@ -119,8 +119,9 @@ Route::get('etsy/updateShopInfo/{id}', 'EtsyController@updateShopInfo');
 Route::get('etsy/{id}/edit', 'EtsyController@edit');
 Route::get('etsy/{id}/clone', 'EtsyController@clone');
 Route::get('etsy/{id}/product', 'EtsyController@getProducts');
-
 Route::get('etsy/{id}/listings', 'EtsyController@findAllShopListingsActive');
+
+Route::get('etsy/order/create/{id}', 'EtsyController@createOrder');
 
 Route::put('etsy/update', 'EtsyController@update');
 Route::post('etsy/uploadListingImage', 'EtsyController@uploadListingImagesFromShop');

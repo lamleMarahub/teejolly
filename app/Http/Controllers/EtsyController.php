@@ -35,6 +35,20 @@ class EtsyController extends Controller
         $this->pagesize = env('PAGINATION_PAGESIZE', 40);
     }
     
+    public function createOrder($id){
+
+        $order = EtsyOrder::find($id);
+        if(!$order) return response()->json(['status' => 'order not found']);
+
+        $orderItems = EtsyOrderItem::where('receipt_id', $order->receipt_id)->get();
+        if(!$orderItems) return response()->json(['success' => 'order not found']);
+
+        return view('etsy.printer')
+            ->with('order', $order)
+            ->with('orderItems', $orderItems);
+
+    }
+    
     public function findAllShopListingsActive($id){
         
         $etsy_shop = EtsyShop::find($id);

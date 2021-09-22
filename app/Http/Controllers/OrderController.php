@@ -50,7 +50,7 @@ class OrderController extends Controller
         $orderItems = OrderItem::where('order_id', $id)->get();
         if(!$orderItems) return response()->json(['success' => 'order not found']);
 
-        return view('order.printify')
+        return view('order.printer')
             ->with('order', $order)
             ->with('orderItems', $orderItems)
             ->with('uuid', $this->gen_uuid());
