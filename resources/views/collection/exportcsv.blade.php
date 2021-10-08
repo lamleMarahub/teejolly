@@ -20,6 +20,28 @@
     var dark_primary_color = 'Black';
     var light_primary_color = 'White';
 
+    var black_word_list = [];
+
+    @foreach ($black_word_list as $bw)
+        black_word_list.push("{{$bw->keyword}}");
+    @endforeach
+
+    function checkHasBlackWord(title) {
+        var eg
+        var match
+
+        black_word_list.some(item=> {
+            eg =new RegExp(item, "gi")
+            match = str.match(eg)
+
+            if (match && match.length) {
+                return true;
+            }
+
+            return false;
+        })
+    }
+
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
@@ -363,7 +385,7 @@
                 +"<th>material_composition1</th>"
                 +"<th>department_name</th>"
                 +"<th>unit_count</th>"
-                +"<th>unit_count_type</th>" // new 
+                +"<th>unit_count_type</th>" // new
                 +"<th>standard_price</th>"
                 +"<th>quantity</th>"
                 +"<th>merchant_shipping_group_name</th>"
@@ -446,6 +468,10 @@
             array_rand(arr,2).forEach(element => title_arr.push(arr[element]));
             console.log('> title:', titleCase(title_arr.join(' ')));
 
+            if (checkHasBlackWord(titleCase(title_arr.join(' ')))) {
+                continue;
+            }
+
             var tags_arr = [];
             var tags = [];
             if(arr.length >= 10){
@@ -456,6 +482,10 @@
             }
             // var tags = tags_arr.join();
             console.log('> tags:', tags);
+
+            if (checkHasBlackWord(tags.join(' '))) {
+                continue;
+            }
 
             var row = '<tr design_id=' + id + '>';
             row += '<td>' + 'multitool' + '</td>';  //feed_product_type : shirt, multitool
@@ -683,6 +713,10 @@
             array_rand(arr,2).forEach(element => title_arr.push(arr[element]));
             console.log('> title:', titleCase(title_arr.join(', ')));
 
+            if (checkHasBlackWord(titleCase(title_arr.join(' ')))) {
+                continue;
+            }
+
             var tags_arr = [];
             var tags = [];
             if(arr.length >= 10){
@@ -693,6 +727,10 @@
             }
             // var tags = tags_arr.join();
             console.log('> tags:', tags);
+
+            if (checkHasBlackWord(tags.join(' '))) {
+                continue;
+            }
 
             var row = '<tr design_id=' + id + '>';
             row += '<td>' + 'shirt' + '</td>';  //feed_product_type

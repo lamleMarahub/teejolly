@@ -500,8 +500,11 @@ class CollectionController extends Controller
             'mockups'=>$mockups
         ];
 
+        $blackWordList = app(BlacklistWordController::class)->getBlackWordList();
+
         return view('collection/exportcsv')
-            ->with('data', $data);
+            ->with('data', $data)
+            ->with('black_word_list', $blackWordList);
     }
 
     /**
