@@ -70,6 +70,9 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url('etsy/statistic') }}">statistics</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url('blacklist') }}">blacklist</a>
+                        </li>
                         @endif
                         <!--@if(Auth::user()->isAdmin())-->
                         <!--<li class="nav-item dropdown">-->
