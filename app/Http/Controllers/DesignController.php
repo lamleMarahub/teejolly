@@ -15,6 +15,7 @@ use PHPUnit\Framework\Constraint\Exception;
 use App\Collection;
 use App\CollectionDesigns;
 use App\User;
+use Illuminate\Support\Facades\Log;
 
 class DesignController extends Controller
 {
@@ -131,13 +132,16 @@ class DesignController extends Controller
             'keyword' => $keyword,
         ];
 
+        $blackWordList = app(BlacklistWordController::class)->getBlackWordList();
+
         return view('design.index')
             ->with('data', $data)
             ->with('designer_id', $designer_id)->with('owner_id', $owner_id)
             ->with('collection_id', $collection_id)->with('keyword', $keyword)
             ->with('filters', $filters)
             ->with('collections', $collections)
-            ->with('users', $users);
+            ->with('users', $users)
+            ->with('black_word_list', $blackWordList);
     }
 
     public function trashed(Request $request) {

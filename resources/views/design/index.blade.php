@@ -7,6 +7,11 @@ var collection_changed = false;
 var design_changed = false;
 var users = {};
 var selected_design_ids = new Map();
+var black_word_list = [];
+
+@foreach ($black_word_list as $bw)
+    black_word_list.push("{{$bw->keyword}}");
+@endforeach
 
 @foreach ($users as $u)
     users[{{ $u->id }}] ="{{ $u->name }}";
@@ -124,6 +129,16 @@ function processDesignTitle80() {
     $('#design_title80_small').html(' <span class="'+ classtext +'">('+ t.length + '/150 characters)</span>');
     $('#design_title80').val(t);
 
+    var checkBlackWordStr = t;
+    var regex;
+
+    black_word_list.map(item=> {
+        regex = new RegExp(item, "gi");
+        checkBlackWordStr = checkBlackWordStr.replace(regex,'<span class="black-word">'+item+'</span>')
+    })
+
+    $('#checkingBlackWordTitle').html(checkBlackWordStr)
+
     return result;
 }
 
@@ -162,6 +177,16 @@ function processDesignTags() {
 
     $('#design_tags_13').html('<small>' + a.length + ' tags </small>' + tags + '</span>');
     $('#design_tags').val(t);
+
+    var checkBlackWordStr = t;
+    var regex;
+
+    black_word_list.map(item=> {
+        regex = new RegExp(item, "gi");
+        checkBlackWordStr = checkBlackWordStr.replace(regex,'<span class="black-word">'+item+'</span>')
+    })
+
+    $('#checkingBlackWordTag').html(checkBlackWordStr)
 
     return result;
 }
@@ -507,6 +532,10 @@ a:hover {
     background: #E2CD6D;
     color: #E86F68;
 }
+.black-word {
+    color: white;
+    background: #ed480a;
+}
 </style>
 
 <div class="container">
@@ -722,12 +751,14 @@ a:hover {
                             <div class="form-group">
                                 <label for="design_title80">title <small id="design_title80_small" class="text-muted">(max 120 characters)</small></label>
                                 <input type="text" id="design_title80" name="design_title80" value="design_title80" class="form-control form-control-sm keyup" required>
+                                <div id="checkingBlackWordTitle">Checking title as you type...</div>
                             </div>
 
                             <div class="form-group">
                                 <label for="design_tags">tags <small class="text-muted">(seperate by comma)</small></label>
                                 <input type="text" id="design_tags" name="design_tags" value="design_tags" class="form-control form-control-sm keyup">
                                 <span id="design_tags_13">etsy, amazon (max 25 tags):</span>
+                                <div id="checkingBlackWordTag">Checking tag as you type...</div>
                             </div>
 
                             <div class="form-group row">

@@ -47,14 +47,14 @@ class BlacklistWordController extends Controller
      */
     public function store(Request $request)
     {
-        if(!$request->has('keyword')) 
+        if(!$request->has('keyword'))
             return back()->with('message', "not found");
 
         $validated = $request->validate([
             'keyword' => 'required|unique:blacklist_words|max:100',
         ]);
 
-        if(!$validated) return back()->with('message', "invalid");        
+        if(!$validated) return back()->with('message', "invalid");
 
         $blacklist_w = new BlacklistWord();
         $blacklist_w -> keyword = $request->keyword;
@@ -108,11 +108,11 @@ class BlacklistWordController extends Controller
             'keyword' => 'required|unique:blacklist_words,id|max:100',
         ]);
 
-        if(!$validated) return back()->with('message', "invalid"); 
+        if(!$validated) return back()->with('message', "invalid");
 
         $blacklist_w -> keyword = $request->keyword;
         $blacklist_w -> type = $request->type;
-        $blacklist_w ->save(); 
+        $blacklist_w ->save();
 
         return redirect('blacklist/index')->with('message', 'updated');
     }
@@ -127,10 +127,22 @@ class BlacklistWordController extends Controller
     {
         $blacklist_w = BlacklistWord::find($id);
 
-        if (!$blacklist_w) return back()->withInput();   
+        if (!$blacklist_w) return back()->withInput();
 
         $blacklist_w->delete();
 
         return redirect('blacklist/index')->with('message', 'deleted');
+    }
+
+    /**
+     * Get all blackwork to client
+     */
+    public function getBlackWordList()
+    {
+        $blacklist_ws = BlacklistWord::all('keyword');
+
+        if(!$blacklist_ws) return;
+
+        return $blacklist_ws;
     }
 }
