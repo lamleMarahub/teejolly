@@ -48,6 +48,15 @@ Route::post('print-providers/printify/variants', 'PrintProviderController@getPri
 Route::post('print-providers/gearment/products', 'PrintProviderController@getProductVariants');
 Route::post('print-providers/printify/create', 'PrintProviderController@createPrintifyOrder');
 
+// Blacklist Words
+Route::get('blacklist/index', 'BlacklistWordController@index');
+Route::get('blacklist/create', 'BlacklistWordController@create');
+Route::post('blacklist/store', 'BlacklistWordController@store');
+Route::get('blacklist/{id}/edit', 'BlacklistWordController@edit');
+Route::get('blacklist/delete/{id}', 'BlacklistWordController@destroy');
+Route::post('blacklist/update/{id}', 'BlacklistWordController@update');
+Route::resource('blacklist', 'BlacklistWordController');
+
 // Design
 Route::get('design/upload', 'DesignController@upload');
 Route::post('design/upload', 'DesignController@uploadSubmit');
