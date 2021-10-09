@@ -32,7 +32,7 @@
 
         black_word_list.some(item=> {
             eg =new RegExp(item, "gi")
-            match = str.match(eg)
+            match = title.match(eg)
 
             if (match && match.length) {
                 return true;
@@ -469,7 +469,7 @@
             console.log('> title:', titleCase(title_arr.join(' ')));
 
             if (checkHasBlackWord(titleCase(title_arr.join(' ')))) {
-                continue;
+                return;
             }
 
             var tags_arr = [];
@@ -483,8 +483,8 @@
             // var tags = tags_arr.join();
             console.log('> tags:', tags);
 
-            if (checkHasBlackWord(tags.join(' '))) {
-                continue;
+            if (checkHasBlackWord(tags)) {
+                return;
             }
 
             var row = '<tr design_id=' + id + '>';
@@ -714,7 +714,7 @@
             console.log('> title:', titleCase(title_arr.join(', ')));
 
             if (checkHasBlackWord(titleCase(title_arr.join(' ')))) {
-                continue;
+                return;
             }
 
             var tags_arr = [];
@@ -728,8 +728,8 @@
             // var tags = tags_arr.join();
             console.log('> tags:', tags);
 
-            if (checkHasBlackWord(tags.join(' '))) {
-                continue;
+            if (checkHasBlackWord(tags)) {
+                return;
             }
 
             var row = '<tr design_id=' + id + '>';
