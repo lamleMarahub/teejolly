@@ -15,7 +15,6 @@ use PHPUnit\Framework\Constraint\Exception;
 use App\Collection;
 use App\CollectionDesigns;
 use App\User;
-use Illuminate\Support\Facades\Log;
 
 class DesignController extends Controller
 {
@@ -105,6 +104,7 @@ class DesignController extends Controller
                         $query->where('title', 'LIKE', '%'.$keyword.'%')
                             ->orWhere('title80', 'LIKE', '%'.$keyword.'%')
                             ->orWhere('tags', 'LIKE', '%'.$keyword.'%')
+                            ->orWhere('type', 'LIKE', '%'.$keyword.'%')
                             ->orWhere('id', '=', $keyword);
                     })
                     ->orderBy('created_at','desc')->paginate($this->pagesize);
@@ -115,6 +115,7 @@ class DesignController extends Controller
                         $query->where('title', 'LIKE', '%'.$keyword.'%')
                             ->orWhere('title80', 'LIKE', '%'.$keyword.'%')
                             ->orWhere('tags', 'LIKE', '%'.$keyword.'%')
+                            ->orWhere('type', 'LIKE', '%'.$keyword.'%')
                             ->orWhere('id', '=', $keyword);
                     })
                     ->orderBy('created_at','desc')->paginate($this->pagesize);
@@ -131,9 +132,9 @@ class DesignController extends Controller
             'shared' => $shared_id,
             'keyword' => $keyword,
         ];
-
+        
         $blackWordList = app(BlacklistWordController::class)->getBlackWordList();
-
+        
         return view('design.index')
             ->with('data', $data)
             ->with('designer_id', $designer_id)->with('owner_id', $owner_id)
@@ -251,7 +252,96 @@ class DesignController extends Controller
         ]);
 
     }
+    
+    public function replace($id)
+    {
+        return view('design.replace')
+            ->with('id',$id);
+    }
 
+    public function ajaxReplace(Request $request)
+    {
+        $success = 1;
+        $data = [];
+
+        $this->validate($request, [
+            'filesToUpload' => 'required',
+            //'filesToUpload.*' => 'image|mimes:jpg,jpeg,png,svg'
+        ]);       
+        
+        if ($request->hasFile('filesToUpload')) {
+            // $user_id = $request->user()->id;
+            //$allowedfileExtension = ['psd', 'jpg', 'png', 'svg'];
+
+            $files = $request->file('filesToUpload');
+            
+            $color = $request->color;
+            $artwork_or_mockup = $request->artwork_or_mockup;
+
+            $dirname = 'images/d/' . Carbon::now()->format('ymd');
+            
+            foreach ($files as $file) {
+                //size, w, h
+                $size = $file->getSize();
+                $imagesize = getimagesize($file);
+                $width = $imagesize[0];
+                $height = $imagesize[1];
+
+                $extension = $file->getClientOriginalExtension();
+                $title = basename($file->getClientOriginalName(), '.' . $extension);
+                $design = Design::find($request->designId);
+                
+                if (!$design->isOwnedOrDesignedOrAdmin($request->user()))
+                    return response()->json([
+                        'success' => -2, //not permission
+                        'data' => null
+                    ]);
+                
+                $design ->extension = $extension;
+                $design ->size = $size;
+                $design ->width = $width;
+                $design ->height = $height;
+                
+                if ($artwork_or_mockup == "artwork") {
+                    //move artword file
+                    $newfolder = 'd' . $design->id;
+                    $newfilename = $newfolder . '/d-' . Str::random(5) .'-'. Str::slug($title,'-') . '.' . $extension;
+
+                    // $filename = $file->storeAs($dirname, $newfilename);
+                    // 2021-07: move to S3
+                    $filename = AwsS3Service::instance()->storeUploadFile($file, $dirname, $newfilename);
+
+                    $design->filename = $filename;
+                    $design->is_shared = 1;
+                    $design->save();
+
+                    //make thumnail
+                    $design->makeThumbnail();
+                } else {
+                    //move mockup file
+                    $newfolder = 'm' . $design->id;
+                    $newfilename = $newfolder . '/m-' . Str::random(5) .'-'. Str::slug($title,'-') . '.' . $extension;
+
+                    // $filename = $file->storeAs($dirname, $newfilename);
+                    // 2021-07: move to S3
+                    $filename = AwsS3Service::instance()->storeUploadFile($file, $dirname, $newfilename);
+
+                    $design->thumbnail = $filename;
+                    $design->is_shared = 0;
+                    $design->save();
+                }
+
+                $data[] = $design;
+            }
+        }
+
+        return response()->json([
+            'success' => $success,
+            'data' => $data
+        ]);
+
+    }
+    
     public function uploadSubmit(Request $request)
     {
         $this->validate($request, [
@@ -829,7 +919,7 @@ class DesignController extends Controller
             'data' => $design
         ]);
     }
-
+    
     public function getAmazonDesignImage(Request $request) {
         $design = Design::find($request->design_id);
         if (!$design) {

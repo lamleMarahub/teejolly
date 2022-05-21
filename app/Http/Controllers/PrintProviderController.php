@@ -20,40 +20,47 @@ class PrintProviderController extends Controller
         $this->middleware('auth.seller');
         $this->pagesize = env('PAGINATION_PAGESIZE', 40);
     }
-
-    // Gearment
-    public function getProductVariants()
+    
+    // Printhigh
+    public function getPrinthighCatalog()
     {
         $curl = curl_init();
         curl_setopt_array($curl, array(
-        CURLOPT_URL => "https://account.gearment.com/api/v2/?act=products",
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => "",
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => "GET",
-        CURLOPT_POSTFIELDS =>"{\r\n\t\"api_key\":\"QBIVKPk3xTZEsYzI\",\r\n\t\"api_signature\":\"HH2pU54NpWGPvY5OOpDtpG6Z5t7unFLO\"}",
-        CURLOPT_HTTPHEADER => array(
-            "Content-Type: application/json"
-        ),
+          CURLOPT_URL => 'https://gateway.printhigh.com/api/public/catalog',
+          CURLOPT_RETURNTRANSFER => true,
+          CURLOPT_ENCODING => '',
+          CURLOPT_MAXREDIRS => 10,
+          CURLOPT_TIMEOUT => 0,
+          CURLOPT_FOLLOWLOCATION => true,
+          CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+          CURLOPT_CUSTOMREQUEST => 'GET',
         ));
 
         $response = curl_exec($curl);
+
         curl_close($curl);
+
         $obj =  json_decode($response,true);
 
+        // print_r($obj);
+        
         return response()->json([
             'success' => 1,
-            'message' => 'Get gearment products',
+            'message' => 'Get printhigh products',
             'data' => $obj
         ]);
-    }
 
-    public function createGearmentOrder(Request $request)
+    }
+    
+    public function createPrintHighOrder(Request $request)
     {
         $result = [];
+
+        if(!Auth::user()->isAdmin()) return response()->json([
+            'success' => 0,
+            'message' => 'not permission - contact admin',
+            'data' => $result,
+        ]);        
 
         if(!$request->has('order_type')) return response()->json([
             'success' => 0,
@@ -77,20 +84,131 @@ class PrintProviderController extends Controller
             'success' => 0,
             'message' => "this order is already printed",
             'data' =>  $result,
-        ]);
-
-        if(!in_array($order->owner_id, [1,$request->user()->id])) return response()->json([
-            'success' => 0,
-            'message' => "owner_id",
-            'data' =>  $result,
-        ]);       
+        ]);     
 
         $post_data = $request->get('postdata');
         // $post_data['api_key'] = Auth::user()->gearment_api_key; 
         // $post_data['api_signature'] = Auth::user()->gearment_api_signature; 
 
-        $post_data['api_key'] = "QBIVKPk3xTZEsYzI"; 
-        $post_data['api_signature'] = "HH2pU54NpWGPvY5OOpDtpG6Z5t7unFLO";
+        // $post_data['api_key'] = "QBIVKPk3xTZEsYzI"; 
+        // $post_data['api_signature'] = "HH2pU54NpWGPvY5OOpDtpG6Z5t7unFLO";
+        // $post_data['shipping_method'] = $post_data['shipping_method'] - 1;
+        // $post_data['send_shipping_notification'] = (bool)0; // 0/1 -> PHP false/true
+        $json_post_data = json_encode($post_data, JSON_NUMERIC_CHECK);
+        $json_post_data = str_replace('[string]', '', $json_post_data);
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://gateway.printhigh.com/api/orders?token=99656ddaef6eb883bca21ee09e8e27825009b7f63c39f2694a1483931bd65729',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => $json_post_data,
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: application/json',
+            ),
+        ));
+        
+        $response = curl_exec($curl);
+        curl_close($curl);
+
+        $result =  json_decode($response,true);
+
+        if (array_key_exists("message", $result)) {
+            return response()->json([
+                'success' => 0,
+                'message' => $result['message'],
+                'data' => $result
+            ]);
+        }       
+
+        $order->fulfillment_id = $result['order']['id'];
+        $order->fulfillment_by = 'printhigh';
+        $order->status = 1;
+        $order->save();
+
+        return response()->json([
+            'success' => 1,
+            'message' => '[API] Add order successfully!',
+            'data' => $result,
+        ]);
+    }
+
+    // Gearment
+    public function getProductVariants()
+    {
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => "https://account.gearment.com/api/v2/?act=products",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "GET",
+        CURLOPT_POSTFIELDS =>"{\r\n\t\"api_key\":\"K02QrEl5XZopqBr8\",\r\n\t\"api_signature\":\"oPxDQqHo5lOAskPtTA189NnSFsMTjtXC\"}",
+        CURLOPT_HTTPHEADER => array(
+            "Content-Type: application/json"
+        ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+        $obj =  json_decode($response,true);
+
+        return response()->json([
+            'success' => 1,
+            'message' => 'Get gearment products',
+            'data' => $obj
+        ]);
+    }
+
+    public function createGearmentOrder(Request $request)
+    {
+        $result = [];
+
+        if(!Auth::user()->isAdmin()) return response()->json([
+            'success' => 0,
+            'message' => 'not permission - contact admin',
+            'data' => $result,
+        ]);        
+
+        if(!$request->has('order_type')) return response()->json([
+            'success' => 0,
+            'message' => 'order_type', 
+            'data' => $result
+        ]);
+
+        if($request->get('order_type') == 1){
+            $order = Order::find($request->get('order_id'));
+        }elseif($request->get('order_type') == 2){
+            $order = EtsyOrder::find($request->get('order_id'));
+        }else{
+            return response()->json([
+                'success' => 0,
+                'message' => 'order_type', 
+                'data' => $result
+            ]);
+        }
+
+        if(!$order || $order->status != 0) return response()->json([
+            'success' => 0,
+            'message' => "this order is already printed",
+            'data' =>  $result,
+        ]);     
+
+        $post_data = $request->get('postdata');
+        // $post_data['api_key'] = Auth::user()->gearment_api_key; 
+        // $post_data['api_signature'] = Auth::user()->gearment_api_signature; 
+
+        $post_data['api_key'] = "K02QrEl5XZopqBr8"; 
+        $post_data['api_signature'] = "oPxDQqHo5lOAskPtTA189NnSFsMTjtXC";
         $post_data['shipping_method'] = $post_data['shipping_method'] - 1;
 
         // $post_data['send_shipping_notification'] = (bool)0; // 0/1 -> PHP false/true
@@ -141,24 +259,7 @@ class PrintProviderController extends Controller
             'data' => $result,
         ]);
     }
-
-    // Webhook:
-    public function tracking_updated(Request $request){
-        return $request->all();
-    }
-
-    public function shipping_address_unverified(Request $request){
-        return 1;
-    }
-
-    public function order_canceled(Request $request) {
-        return 1;
-    }
-
-    public function order_completed(Request $request) {
-        return 1;
-    }
-
+   
     public function getPrintifyPrintProviders(Request $request)
     {
         $curl = curl_init();
@@ -225,6 +326,12 @@ class PrintProviderController extends Controller
     {
         $result = [];
 
+        if(!Auth::user()->isAdmin()) return response()->json([
+            'success' => 0,
+            'message' => 'not permission - contact admin',
+            'data' => $result,
+        ]);   
+
         if(!$request->has('order_type')) return response()->json([
             'success' => 0,
             'message' => 'order_type', 
@@ -248,12 +355,6 @@ class PrintProviderController extends Controller
             'message' => "this order is already printed",
             'data' =>  $result,
         ]);
-
-        if(!in_array($order->owner_id, [1,$request->user()->id])) return response()->json([
-            'success' => 0,
-            'message' => "owner_id",
-            'data' =>  $result,
-        ]); 
             
         $curl = curl_init();
 
@@ -263,9 +364,11 @@ class PrintProviderController extends Controller
         $json_post_data = json_encode($post_data, JSON_NUMERIC_CHECK);
         $json_post_data = str_replace('[string]', '', $json_post_data);
         // error_log($json_post_data);
-
+        
+        // [{"id":740379,"title":"Favorites Season","sales_channel":"disconnected"},{"id":3558273,"title":"API","sales_channel":"custom_integration"},{"id":3587006,"title":"TeeBiz","sales_channel":"custom_integration"}]
+        
         curl_setopt_array($curl, array(
-            CURLOPT_URL => "https://api.printify.com/v1/shops/3558273/orders.json",
+            CURLOPT_URL => "https://api.printify.com/v1/shops/3587006/orders.json",
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => "",
             CURLOPT_MAXREDIRS => 10,
