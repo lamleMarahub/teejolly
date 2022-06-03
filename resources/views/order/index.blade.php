@@ -295,11 +295,11 @@ function deleteOrder() {
                 <div class="btn-group btn-group-sm ml-2 float-left" role="group">
                     <select id="status" name="status" class="btn btn-sm form-control form-control-sm border bg-success">
                         <option value="4" @if ($filters['status'] == 4) ? selected : '' @endif>- all status -</option>
-                        <option value="0" @if ($filters['status'] == 0) ? selected : '' @endif>new order</option> 
+                        <option value="0" @if ($filters['status'] == 0) ? selected : '' @endif>new order</option>
                         <option value="1" @if ($filters['status'] == 1) ? selected : '' @endif>in production</option>
                         <option value="2" @if ($filters['status'] == 2) ? selected : '' @endif>shipped</option>
                         <option value="3" @if ($filters['status'] == 3) ? selected : '' @endif>cancelled</option>
-                    </select>  
+                    </select>
                 </div>
                 <div class="btn-group btn-group-sm ml-2 float-left" role="group">
                     <select id="fulfillment" name="fulfillment" class="btn btn-sm form-control form-control-sm border bg-success">
@@ -418,7 +418,7 @@ function deleteOrder() {
                                     <label for="amz_order_date">order date</label>
                                     <input type="text" id="amz_order_date" name="amz_order_date" value="amz_order_date" class="form-control form-control-sm" disabled>
                                 </div>
-                                
+
                                 <div class="col-2">
                                     <label for="order_status">order status</label>
                                     <select class="form-control form-control-sm" id="order_status" name="order_status">
@@ -426,7 +426,7 @@ function deleteOrder() {
                                         <option value="1">in production</option>
                                         <option value="2">shipped</option>
                                         <option value="3">cancelled</option>
-                                    </select>   
+                                    </select>
                                 </div>
                             </div>
                             <div class="form-group row">

@@ -249,57 +249,57 @@ $(document).ready(function(){
     // ///////////////////////////////////////////////////////
     // PRINTHIGH
 
-    var $printhighSelects = $('select[name$=product_id].printhigh').empty()
-    $printhighSelects.append(`<option value=0>-- loading --</option>`)
+    // var $printhighSelects = $('select[name$=product_id].printhigh').empty()
+    // $printhighSelects.append(`<option value=0>-- loading --</option>`)
 
-    $.ajax({
-        url : "{{url('/print-providers/printhigh/products')}}",
-        type: 'POST',
-        data: {},
-        async: true,
-        success : function(res) {
-            PRINTHIGH_PRODUCTS = res.data
-            $printhighSelects.empty()
-            $printhighSelects.append(`<option value=0>-- choose product --</option>`)
-            res.data.forEach(element => {
-                $printhighSelects.append(`<option value="${element.value}">${element.text}</option>`)
-            });
-        },
-        error: function(err) {
-            alert( "error" );
-        }
-    })
-    
-    $printhighSelects.on('change', function() {
-        const chooseProductId = this.value
-        const selectName = $(this).attr('name')
-        const itemId = selectName.split('_')[0]
-        const choosenProduct = PRINTHIGH_PRODUCTS.find(item => item.value == chooseProductId)
+    // $.ajax({
+    //     url : "{{url('/print-providers/printhigh/products')}}",
+    //     type: 'POST',
+    //     data: {},
+    //     async: true,
+    //     success : function(res) {
+    //         PRINTHIGH_PRODUCTS = res.data
+    //         $printhighSelects.empty()
+    //         $printhighSelects.append(`<option value=0>-- choose product --</option>`)
+    //         res.data.forEach(element => {
+    //             $printhighSelects.append(`<option value="${element.value}">${element.text}</option>`)
+    //         });
+    //     },
+    //     error: function(err) {
+    //         alert( "error" );
+    //     }
+    // })
 
-        const $variant = $(`select[name=${itemId}_variant_id].printhigh`).empty()
+    // $printhighSelects.on('change', function() {
+    //     const chooseProductId = this.value
+    //     const selectName = $(this).attr('name')
+    //     const itemId = selectName.split('_')[0]
+    //     const choosenProduct = PRINTHIGH_PRODUCTS.find(item => item.value == chooseProductId)
 
-        // console.log(choosenProduct)
+    //     const $variant = $(`select[name=${itemId}_variant_id].printhigh`).empty()
 
-        choosenProduct.colors.forEach(color => {
-            // $variant.append(`<option ${element.availability_status === 'in_stock' ? '' : 'disabled="disabled"'}" value="${element.variant_id}">${element.color} - ${element.size}</option>`);
-            // $variant.append(`<option ${element.availability_status === 'in_stock' ? '' : 'disabled="disabled"'} value="${element.variant_id}">${element.size} / ${element.color} </option>`);
-            // $variant.append(`<option value="${element.product_color_id}">${element.color} / ${element.color} </option>`);
-            
-            choosenProduct.sizes.forEach(size=>{
-                $variant.append(`<option value="${color}/${size}">${color} / ${size} </option>`);
-            });
-            // obj.colors.forEach(element=>{
-            //     // console.log(element.in_stock)
-            //     $variant.append(`<option value="${element}">${element} / ${element} </option>`);
-            //     // $variant.append(`<option value="${element.catalog_sku_id}">${element.size} / ${element.color} </option>`);
-            // });
-            // alert(`<option ${element.availability_status === 'in_stock' ? '' : 'disabled="disabled"'} value="${element.variant_id}">${element.color} - ${element.size}</option>`)
-        });
+    //     // console.log(choosenProduct)
 
-        // $(`img.${itemId}_mockup_img`).attr('src', choosenProduct.product_img + '?x=' + new Date().getTime())
+    //     choosenProduct.colors.forEach(color => {
+    //         // $variant.append(`<option ${element.availability_status === 'in_stock' ? '' : 'disabled="disabled"'}" value="${element.variant_id}">${element.color} - ${element.size}</option>`);
+    //         // $variant.append(`<option ${element.availability_status === 'in_stock' ? '' : 'disabled="disabled"'} value="${element.variant_id}">${element.size} / ${element.color} </option>`);
+    //         // $variant.append(`<option value="${element.product_color_id}">${element.color} / ${element.color} </option>`);
 
-        $variant.trigger('change')
-    })
+    //         choosenProduct.sizes.forEach(size=>{
+    //             $variant.append(`<option value="${color}/${size}">${color} / ${size} </option>`);
+    //         });
+    //         // obj.colors.forEach(element=>{
+    //         //     // console.log(element.in_stock)
+    //         //     $variant.append(`<option value="${element}">${element} / ${element} </option>`);
+    //         //     // $variant.append(`<option value="${element.catalog_sku_id}">${element.size} / ${element.color} </option>`);
+    //         // });
+    //         // alert(`<option ${element.availability_status === 'in_stock' ? '' : 'disabled="disabled"'} value="${element.variant_id}">${element.color} - ${element.size}</option>`)
+    //     });
+
+    //     // $(`img.${itemId}_mockup_img`).attr('src', choosenProduct.product_img + '?x=' + new Date().getTime())
+
+    //     $variant.trigger('change')
+    // })
 
     $('select[name$=variant_id].printhigh').on('change', function() {
         const selectName = $(this).attr('name')
@@ -322,7 +322,7 @@ $(document).ready(function(){
         const productId = $(`select[name$=${itemId}_shipping_method_ph].printhigh`).val()
         // console.log(productId)
         $('select[name$=shipping_method_ph]').val(productId).change()
-    })    
+    })
     // END PRINTHIGH
     // ///////////////////////////////////////////////////////
 
@@ -334,7 +334,7 @@ $(document).ready(function(){
         const provider = $(this).attr('provider')
         const $targetImg = $(`img[class=${itemId}_design_img][provider=${provider}]`)
         const $designImgUrlInput = $(`input[name=${itemId}_design_img_url][provider=${provider}]`)
-        const submitButton = $('#gearSubmitBtn').prop('disabled', true);
+        const submitButton = $('.submit-button').prop('disabled', true);
 
         $.ajax({
             url : "{{url('/design/img')}}",
@@ -361,7 +361,7 @@ $(document).ready(function(){
         const provider = $(this).attr('provider')
         const $targetImg = $(`img[class=${itemId}_design_img_2][provider=${provider}]`)
         const $designImgUrlInput = $(`input[name=${itemId}_design_img_url_2][provider=${provider}]`)
-        const submitButton = $('#gearSubmitBtn').prop('disabled', true);
+        const submitButton = $('.submit-button').prop('disabled', true);
 
         $.ajax({
             url : "{{url('/design/img')}}",
@@ -462,7 +462,6 @@ function submitPrintifyForm() {
  *
  */
 function submitGearmentForm() {
-    
     var emptyDesigns = {};
 
     for (const element of $('#gearmentForm').serializeArray()) {
@@ -504,8 +503,6 @@ function submitGearmentForm() {
     }, {})
 
     var processedFormdata = Object.entries(formdata).map(item => item[1])
-
-    console.log('processedFormdata=', processedFormdata)
 
     const postdata = {
         api_key: "",
@@ -578,8 +575,6 @@ function submitPrintHighForm() {
         }
     }
 
-    // console.log('----------------[emptyDesigns]', emptyDesigns)
-
     if (Object.values(emptyDesigns).find(item => item >= 2)) {
         alert('Hãy điền design ID front/back')
         return;
@@ -603,11 +598,9 @@ function submitPrintHighForm() {
 
     var processedFormdata = Object.entries(formdata).map(item => item[1])
 
-    console.log('processedFormdata=', processedFormdata)
-
     function getDesignImage(item) {
         var designImages = [];
-        
+
         if (item.design_img_url) {
             designImages.push({location: "front", imageUrl: item.design_img_url});
         }
@@ -622,7 +615,7 @@ function submitPrintHighForm() {
     const postdata = {
         address: ADDRESS_2,
         sellerOrderId: "{{$order->amz_order_id}}",
-        shippingMethod: processedFormdata[0].shipping_method_ph,        
+        shippingMethod: processedFormdata[0].shipping_method_ph,
         items: processedFormdata.map(item=> (
             {
                 catalogId: +item.product_id,
@@ -639,14 +632,14 @@ function submitPrintHighForm() {
         type: 'POST',
         data: {order_id: "{{$order->id}}", postdata: postdata, order_type: 1},
         async: true,
-        success : function(res) { 
+        success : function(res) {
             if(res.success){
                 $('#showAlert').html(res.message + " - #" + res.data.order.id)
                 $('#showAlert').show()
             }else{
                 $('#showAlert').html(res.message)
                 $('#showAlert').show()
-            }            
+            }
             console.log(res.data)
         },
         error: function(err) {
@@ -673,6 +666,9 @@ function submitPrintHighForm() {
         </li>
         <li class="nav-item" role="presentation">
             <a class="nav-link" id="printhighTab" data-toggle="tab" href="#printhigh" role="tab" aria-controls="printhigh" aria-selected="false">3. printhigh</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="dreamshipTab" data-toggle="tab" href="#dreamship" role="tab" aria-controls="dreamship" aria-selected="false">4. Dreamship</a>
         </li>
     </ul>
     <div class="tab-content">
@@ -744,7 +740,7 @@ function submitPrintHighForm() {
                 </table>
                 <div class="row" style="padding-top:20px">
                     <div class="col">
-                        <button type="button" class="btn btn-primary col-12" onclick="submitPrintifyForm()">Submit Printify Order</button>
+                        <button type="button" class="btn btn-primary col-12 submit-button" onclick="submitPrintifyForm()" provider="printify">Submit Printify Order</button>
                         <pre id='printifyPostData'></pre>
                     </div>
                 </div>
@@ -823,7 +819,7 @@ function submitPrintHighForm() {
                 </table>
                 <div class="row" style="padding-top:20px">
                     <div class="col">
-                        <button type="button" id='gearSubmitBtn' class="btn btn-primary col-12" onclick="submitGearmentForm()">Submit Gearment Order</button>
+                        <button type="button" id='gearSubmitBtn' class="btn btn-primary col-12 submit-button" onclick="submitGearmentForm()" provider="gearment">Submit Gearment Order</button>
                         <pre id='gearmentPostData'></pre>
                     </div>
                 </div>
@@ -832,7 +828,7 @@ function submitPrintHighForm() {
 
         <div class="tab-pane" id="printhigh" role="tabpanel" aria-labelledby="printhigh-tab">
             <form id='printhighForm'>
-                <h4 style="padding-top:10px">Order Id: #{{$order->amz_order_id}}  @if($order->note) - Note: <b>{{$order->note}}</b> @endif</h4>             
+                <h4 style="padding-top:10px">Order Id: #{{$order->amz_order_id}}  @if($order->note) - Note: <b>{{$order->note}}</b> @endif</h4>
                 <table class="table table-borderless table-hover">
                     @foreach($orderItems as $item)
                     <tr>
@@ -864,7 +860,7 @@ function submitPrintHighForm() {
                                     </div>
                                 </div>
                                 <div class="col-3">
-                                    <label class="text-danger">Shipping Service</label>                                    
+                                    <label class="text-danger">Shipping Service</label>
                                     <div class="">
                                         <select class="printhigh form-control" style="width: 100%" name="{{$item->id}}_shipping_method_ph">
                                             <option value="standard" selected>Standard</option>
@@ -899,12 +895,14 @@ function submitPrintHighForm() {
                 </table>
                 <div class="row" style="padding-top:20px">
                     <div class="col">
-                        <button type="button" class="btn btn-primary col-12" onclick="submitPrintHighForm()">Submit PrintHigh Order</button>
+                        <button type="button" class="btn btn-primary col-12 submit-button" onclick="submitPrintHighForm()" provider="printhigh">Submit PrintHigh Order YYY</button>
                         <pre id='printhighPostData'></pre>
                     </div>
                 </div>
             </form>
         </div>
+
+        @include('order.dreamship')
 
     </div>
 

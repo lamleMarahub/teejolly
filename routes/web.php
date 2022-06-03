@@ -46,6 +46,11 @@ Route::get('order/create/{id}', 'OrderController@createOrder');
 Route::post('print-providers/printify/providers', 'PrintProviderController@getPrintifyPrintProviders');
 Route::post('print-providers/printify/variants', 'PrintProviderController@getPrintifyVariants');
 Route::post('print-providers/gearment/products', 'PrintProviderController@getProductVariants');
+Route::post('print-providers/dreamship/products', 'PrintProviderController@getDreamshipVariants');
+Route::post('print-providers/dreamship/categories', 'PrintProviderController@getDreamshipCategories');
+Route::post('print-providers/dreamship/categories/{category_id}/items', 'PrintProviderController@getDreamshipItems');
+Route::post('print-providers/dreamship/items/{item_id}', 'PrintProviderController@getDreamshipItemDetail');
+Route::post('print-providers/dreamship/create', 'PrintProviderController@createDreamshipOrder');
 Route::post('print-providers/printify/create', 'PrintProviderController@createPrintifyOrder');
 
 // Blacklist Words

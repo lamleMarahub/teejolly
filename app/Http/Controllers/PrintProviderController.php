@@ -14,13 +14,14 @@ use DB;
 class PrintProviderController extends Controller
 {
     protected $pagesize;
+    protected $DREAMSHIP_TOKEN = '2b712060b88de3f9faeb53968a27a40c33020cd5';
 
     public function __construct()
     {
         $this->middleware('auth.seller');
         $this->pagesize = env('PAGINATION_PAGESIZE', 40);
     }
-    
+
     // Printhigh
     public function getPrinthighCatalog()
     {
@@ -43,7 +44,7 @@ class PrintProviderController extends Controller
         $obj =  json_decode($response,true);
 
         // print_r($obj);
-        
+
         return response()->json([
             'success' => 1,
             'message' => 'Get printhigh products',
@@ -51,7 +52,7 @@ class PrintProviderController extends Controller
         ]);
 
     }
-    
+
     public function createPrintHighOrder(Request $request)
     {
         $result = [];
@@ -60,11 +61,11 @@ class PrintProviderController extends Controller
             'success' => 0,
             'message' => 'not permission - contact admin',
             'data' => $result,
-        ]);        
+        ]);
 
         if(!$request->has('order_type')) return response()->json([
             'success' => 0,
-            'message' => 'order_type', 
+            'message' => 'order_type',
             'data' => $result
         ]);
 
@@ -75,7 +76,7 @@ class PrintProviderController extends Controller
         }else{
             return response()->json([
                 'success' => 0,
-                'message' => 'order_type', 
+                'message' => 'order_type',
                 'data' => $result
             ]);
         }
@@ -84,13 +85,13 @@ class PrintProviderController extends Controller
             'success' => 0,
             'message' => "this order is already printed",
             'data' =>  $result,
-        ]);     
+        ]);
 
         $post_data = $request->get('postdata');
-        // $post_data['api_key'] = Auth::user()->gearment_api_key; 
-        // $post_data['api_signature'] = Auth::user()->gearment_api_signature; 
+        // $post_data['api_key'] = Auth::user()->gearment_api_key;
+        // $post_data['api_signature'] = Auth::user()->gearment_api_signature;
 
-        // $post_data['api_key'] = "QBIVKPk3xTZEsYzI"; 
+        // $post_data['api_key'] = "QBIVKPk3xTZEsYzI";
         // $post_data['api_signature'] = "HH2pU54NpWGPvY5OOpDtpG6Z5t7unFLO";
         // $post_data['shipping_method'] = $post_data['shipping_method'] - 1;
         // $post_data['send_shipping_notification'] = (bool)0; // 0/1 -> PHP false/true
@@ -113,7 +114,7 @@ class PrintProviderController extends Controller
                 'Content-Type: application/json',
             ),
         ));
-        
+
         $response = curl_exec($curl);
         curl_close($curl);
 
@@ -125,7 +126,7 @@ class PrintProviderController extends Controller
                 'message' => $result['message'],
                 'data' => $result
             ]);
-        }       
+        }
 
         $order->fulfillment_id = $result['order']['id'];
         $order->fulfillment_by = 'printhigh';
@@ -169,7 +170,95 @@ class PrintProviderController extends Controller
         ]);
     }
 
-    public function createGearmentOrder(Request $request)
+    // Dreamship
+    public function getDreamshipCategories()
+    {
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => "https://api.dreamship.com/v1/categories/",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "GET",
+        CURLOPT_HTTPHEADER => array(
+            "Content-Type: application/json",
+            "Authorization: Bearer " . $this->DREAMSHIP_TOKEN
+        ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+        $obj =  json_decode($response, true);
+
+        return response()->json([
+            'success' => 1,
+            'message' => 'getDreamshipCategories',
+            'data' => $obj
+        ]);
+    }
+
+    public function getDreamshipItems($category_id)
+    {
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => 'https://api.dreamship.com/v1/categories/' . $category_id . '/items/',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "GET",
+        CURLOPT_HTTPHEADER => array(
+            "Content-Type: application/json",
+            "Authorization: Bearer " . $this->DREAMSHIP_TOKEN
+        ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+        $obj =  json_decode($response, true);
+
+        return response()->json([
+            'success' => 1,
+            'message' => 'getDreamshipItems',
+            'data' => $obj
+        ]);
+    }
+
+    public function getDreamshipItemDetail($item_id)
+    {
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => 'https://api.dreamship.com/v1/items/' . $item_id . '/',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "GET",
+        CURLOPT_HTTPHEADER => array(
+            "Content-Type: application/json",
+            "Authorization: Bearer " . $this->DREAMSHIP_TOKEN
+        ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+        $obj =  json_decode($response,true);
+
+        return response()->json([
+            'success' => 1,
+            'message' => 'getDreamshipItemDetail',
+            'data' => $obj
+        ]);
+    }
+
+    public function createDreamshipOrder(Request $request)
     {
         $result = [];
 
@@ -177,11 +266,11 @@ class PrintProviderController extends Controller
             'success' => 0,
             'message' => 'not permission - contact admin',
             'data' => $result,
-        ]);        
+        ]);
 
         if(!$request->has('order_type')) return response()->json([
             'success' => 0,
-            'message' => 'order_type', 
+            'message' => 'order_type',
             'data' => $result
         ]);
 
@@ -192,7 +281,7 @@ class PrintProviderController extends Controller
         }else{
             return response()->json([
                 'success' => 0,
-                'message' => 'order_type', 
+                'message' => 'order_type',
                 'data' => $result
             ]);
         }
@@ -201,13 +290,94 @@ class PrintProviderController extends Controller
             'success' => 0,
             'message' => "this order is already printed",
             'data' =>  $result,
-        ]);     
+        ]);
 
         $post_data = $request->get('postdata');
-        // $post_data['api_key'] = Auth::user()->gearment_api_key; 
-        // $post_data['api_signature'] = Auth::user()->gearment_api_signature; 
+        $curl = curl_init();
 
-        $post_data['api_key'] = "K02QrEl5XZopqBr8"; 
+        $post_data['test_order'] = true;
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://api.dreamship.com/v1/orders/',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => json_encode($post_data),
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: application/json',
+                "Authorization: Bearer " . $this->DREAMSHIP_TOKEN
+            ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+
+        $result =  json_decode($response,true);
+
+        if($result['status'] == 'error'){
+            return response()->json([
+                'success' => 0,
+                'message' => $result['status'],
+                'data' => $result
+            ]);
+        }
+
+        $order->fulfillment_id = $result['id'];
+        $order->fulfillment_by = 'dreamship';
+        $order->status = 1;
+        $order->save();
+
+        return response()->json([
+            'success' => 1,
+            'message' => $result['status'],
+            'data' => $result,
+        ]);
+    }
+    // END Dreamship
+
+    public function createGearmentOrder(Request $request)
+    {
+        $result = [];
+
+        if(!Auth::user()->isAdmin()) return response()->json([
+            'success' => 0,
+            'message' => 'not permission - contact admin',
+            'data' => $result,
+        ]);
+
+        if(!$request->has('order_type')) return response()->json([
+            'success' => 0,
+            'message' => 'order_type',
+            'data' => $result
+        ]);
+
+        if($request->get('order_type') == 1){
+            $order = Order::find($request->get('order_id'));
+        }elseif($request->get('order_type') == 2){
+            $order = EtsyOrder::find($request->get('order_id'));
+        }else{
+            return response()->json([
+                'success' => 0,
+                'message' => 'order_type',
+                'data' => $result
+            ]);
+        }
+
+        if(!$order || $order->status != 0) return response()->json([
+            'success' => 0,
+            'message' => "this order is already printed",
+            'data' =>  $result,
+        ]);
+
+        $post_data = $request->get('postdata');
+        // $post_data['api_key'] = Auth::user()->gearment_api_key;
+        // $post_data['api_signature'] = Auth::user()->gearment_api_signature;
+
+        $post_data['api_key'] = "K02QrEl5XZopqBr8";
         $post_data['api_signature'] = "oPxDQqHo5lOAskPtTA189NnSFsMTjtXC";
         $post_data['shipping_method'] = $post_data['shipping_method'] - 1;
 
@@ -238,7 +408,7 @@ class PrintProviderController extends Controller
         $response = curl_exec($curl);
         curl_close($curl);
 
-        $result =  json_decode($response,true);  
+        $result =  json_decode($response,true);
 
         if($result['status'] == 'error'){
             return response()->json([
@@ -259,7 +429,7 @@ class PrintProviderController extends Controller
             'data' => $result,
         ]);
     }
-   
+
     public function getPrintifyPrintProviders(Request $request)
     {
         $curl = curl_init();
@@ -330,11 +500,11 @@ class PrintProviderController extends Controller
             'success' => 0,
             'message' => 'not permission - contact admin',
             'data' => $result,
-        ]);   
+        ]);
 
         if(!$request->has('order_type')) return response()->json([
             'success' => 0,
-            'message' => 'order_type', 
+            'message' => 'order_type',
             'data' => $result
         ]);
 
@@ -345,7 +515,7 @@ class PrintProviderController extends Controller
         }else{
             return response()->json([
                 'success' => 0,
-                'message' => 'order_type', 
+                'message' => 'order_type',
                 'data' => $result
             ]);
         }
@@ -355,7 +525,7 @@ class PrintProviderController extends Controller
             'message' => "this order is already printed",
             'data' =>  $result,
         ]);
-            
+
         $curl = curl_init();
 
         $post_data = $request->get('postdata');
@@ -364,9 +534,9 @@ class PrintProviderController extends Controller
         $json_post_data = json_encode($post_data, JSON_NUMERIC_CHECK);
         $json_post_data = str_replace('[string]', '', $json_post_data);
         // error_log($json_post_data);
-        
+
         // [{"id":740379,"title":"Favorites Season","sales_channel":"disconnected"},{"id":3558273,"title":"API","sales_channel":"custom_integration"},{"id":3587006,"title":"TeeBiz","sales_channel":"custom_integration"}]
-        
+
         curl_setopt_array($curl, array(
             CURLOPT_URL => "https://api.printify.com/v1/shops/3587006/orders.json",
             CURLOPT_RETURNTRANSFER => true,
