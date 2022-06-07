@@ -41,7 +41,9 @@ $(document).ready(function() {
 
     $dreamshipSelects.on('change', function() {
         const categoryId = this.value
-        const $itemDom = $(`select[name$=item_id].dreamship`).empty()
+        const selectName = $(this).attr('name')
+        const orderItemId = selectName.split('_')[0]
+        const $itemDom = $(`select[name$=${orderItemId}_item_id].dreamship`).empty()
             .append(`<option value="0">-- loading --</option>`);
 
         $.ajax({
@@ -70,7 +72,9 @@ $(document).ready(function() {
     $('select[name$=item_id].dreamship').on('change', function() {
         const rootPath = "{{url('')}}";
         const itemId = this.value
-        const $varianDom = $(`select[name$=variant_id].dreamship`).empty()
+        const selectName = $(this).attr('name')
+        const orderItemId = selectName.split('_')[0]
+        const $varianDom = $(`select[name$=${orderItemId}_variant_id].dreamship`).empty()
             .append(`<option value="0">-- loading --</option>`);
 
         $.ajax({
@@ -157,7 +161,7 @@ function submitDreamshipForm() {
             }
 
             if (item.design_img_url_2) {
-                areas.push({key: "back", url: item.design_img_url, position: "top_center", resize: "fit"})
+                areas.push({key: "back", url: item.design_img_url_2, position: "top_center", resize: "fit"})
             }
 
             return {
