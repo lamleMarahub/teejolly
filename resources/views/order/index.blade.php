@@ -76,7 +76,7 @@ function showUpdateDesignModal(id) {
 
             $('#fulfillment_id').val(d.fulfillment_id);
             $('#full_name').val(d.full_name);
-            $('#address_1').val(d.address_1);
+            $('#addss_1').val(d.addss_1);
             $('#address_2').val(d.address_2);
             $('#city').val(d.city);
             $('#state').val(d.state);

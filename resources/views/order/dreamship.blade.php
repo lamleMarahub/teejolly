@@ -153,11 +153,11 @@ function submitDreamshipForm() {
             const areas = [];
 
             if (item.design_img_url) {
-                areas.push({key: "front", url: item.design_img_url})
+                areas.push({key: "front", url: item.design_img_url, position: "top_center", resize: "fit"})
             }
 
             if (item.design_img_url_2) {
-                areas.push({key: "back", url: item.design_img_url})
+                areas.push({key: "back", url: item.design_img_url, position: "top_center", resize: "fit"})
             }
 
             return {
