@@ -10,11 +10,14 @@ use App\OrderItem;
 use Carbon\Carbon;
 use Auth;
 use DB;
+use Illuminate\Support\Facades\Cache;
 
 class PrintProviderController extends Controller
 {
     protected $pagesize;
     protected $DREAMSHIP_TOKEN = '2b712060b88de3f9faeb53968a27a40c33020cd5';
+    protected $CUSTOMCAT_API_KEY = '57C11845-0A7E-FEE7-5FC8312B727456D4';
+    protected $CACHE_TTL_SECOND = 86400; // 1d
 
     public function __construct()
     {
@@ -143,9 +146,20 @@ class PrintProviderController extends Controller
     // Gearment
     public function getProductVariants()
     {
+        $endpoint = 'https://account.gearment.com/api/v2/?act=products';
+
+        if (Cache::has($endpoint)) {
+            $cache_value = Cache::get($endpoint);
+            return response()->json([
+                'success' => 1,
+                'message' => 'getProductVariants in cache',
+                'data' => $cache_value
+            ]);
+        }
+
         $curl = curl_init();
         curl_setopt_array($curl, array(
-        CURLOPT_URL => "https://account.gearment.com/api/v2/?act=products",
+        CURLOPT_URL => $endpoint,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => "",
         CURLOPT_MAXREDIRS => 10,
@@ -163,6 +177,8 @@ class PrintProviderController extends Controller
         curl_close($curl);
         $obj =  json_decode($response,true);
 
+        Cache::put($endpoint, $obj, $this->CACHE_TTL_SECOND);
+
         return response()->json([
             'success' => 1,
             'message' => 'Get gearment products',
@@ -173,6 +189,17 @@ class PrintProviderController extends Controller
     // Dreamship
     public function getDreamshipCategories()
     {
+        $endpoint = 'https://api.dreamship.com/v1/categories/';
+
+        if (Cache::has($endpoint)) {
+            $cache_value = Cache::get($endpoint);
+            return response()->json([
+                'success' => 1,
+                'message' => 'getDreamshipCategories in cache',
+                'data' => $cache_value
+            ]);
+        }
+
         $curl = curl_init();
         curl_setopt_array($curl, array(
         CURLOPT_URL => "https://api.dreamship.com/v1/categories/",
@@ -193,6 +220,8 @@ class PrintProviderController extends Controller
         curl_close($curl);
         $obj =  json_decode($response, true);
 
+        Cache::put($endpoint, $obj, $this->CACHE_TTL_SECOND);
+
         return response()->json([
             'success' => 1,
             'message' => 'getDreamshipCategories',
@@ -202,9 +231,20 @@ class PrintProviderController extends Controller
 
     public function getDreamshipItems($category_id)
     {
+        $endpoint =  'https://api.dreamship.com/v1/categories/' . $category_id . '/items/';
+
+        if (Cache::has($endpoint)) {
+            $cache_value = Cache::get($endpoint);
+            return response()->json([
+                'success' => 1,
+                'message' => 'getDreamshipItems in cache',
+                'data' => $cache_value
+            ]);
+        }
+
         $curl = curl_init();
         curl_setopt_array($curl, array(
-        CURLOPT_URL => 'https://api.dreamship.com/v1/categories/' . $category_id . '/items/',
+        CURLOPT_URL => $endpoint,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => "",
         CURLOPT_MAXREDIRS => 10,
@@ -221,6 +261,8 @@ class PrintProviderController extends Controller
         $response = curl_exec($curl);
         curl_close($curl);
         $obj =  json_decode($response, true);
+
+        Cache::put($endpoint, $obj, $this->CACHE_TTL_SECOND);
 
         return response()->json([
             'success' => 1,
@@ -338,6 +380,127 @@ class PrintProviderController extends Controller
         ]);
     }
     // END Dreamship
+
+    // CustomCat
+    public function getCustomCatCategories()
+    {
+        $endpoint = 'https://customcat-beta.mylocker.net/api/v1/catalog?limit=250' . '&api_key=' . $this->CUSTOMCAT_API_KEY;
+
+        if (Cache::has($endpoint)) {
+            $cache_value = Cache::get($endpoint);
+            return response()->json([
+                'success' => 1,
+                'message' => 'getCustomCatCategories in cache',
+                'data' => $cache_value
+            ]);
+        }
+
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => $endpoint,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "GET",
+        CURLOPT_HTTPHEADER => array(
+            "Content-Type: application/json"
+        ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+        $obj =  json_decode($response, true);
+
+        Cache::put($endpoint, $obj, $this->CACHE_TTL_SECOND);
+
+        return response()->json([
+            'success' => 1,
+            'message' => 'getCustomCatCategories',
+            'data' => $obj
+        ]);
+    }
+
+    public function createCustomCatOrder(Request $request)
+    {
+        $result = [];
+
+        if(!Auth::user()->isAdmin()) return response()->json([
+            'success' => 0,
+            'message' => 'not permission - contact admin',
+            'data' => $result,
+        ]);
+
+        if(!$request->has('order_type')) return response()->json([
+            'success' => 0,
+            'message' => 'order_type',
+            'data' => $result
+        ]);
+
+        if($request->get('order_type') == 1){
+            $order = Order::find($request->get('order_id'));
+        }elseif($request->get('order_type') == 2){
+            $order = EtsyOrder::find($request->get('order_id'));
+        }else{
+            return response()->json([
+                'success' => 0,
+                'message' => 'order_type',
+                'data' => $result
+            ]);
+        }
+
+        if(!$order || $order->status != 0) return response()->json([
+            'success' => 0,
+            'message' => "this order is already printed",
+            'data' =>  $result,
+        ]);
+
+        $post_data = $request->get('postdata');
+        $curl = curl_init();
+        $post_data['api_key'] = $this->CUSTOMCAT_API_KEY;
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://customcat-beta.mylocker.net/api/v1/order/' . $request->get('order_id'),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => json_encode($post_data),
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: application/json',
+            ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+
+        $result =  json_decode($response,true);
+
+        if (array_key_exists('ERROR', $result)) {
+            return response()->json([
+                'success' => 0,
+                'message' => $result['ERROR'],
+                'data' => $result
+            ]);
+        }
+
+        $order->fulfillment_id = $result['ORDER_ID'];
+        $order->fulfillment_by = 'customCat';
+        $order->status = 1;
+        $order->save();
+
+        return response()->json([
+            'success' => 1,
+            'message' => $result['MSG'],
+            'data' => $result,
+        ]);
+    }
+    // End CustomCat
 
     public function createGearmentOrder(Request $request)
     {

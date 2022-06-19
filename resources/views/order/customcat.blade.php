@@ -1,8 +1,8 @@
 <script type='text/javascript'>
 // ///////////////////////////////////////////////////////
-// dreamship
-var DREAMSHIP_CATEGORIES = [];
+// customcat
 var ROOT_PATH = "{{url('')}}";
+var CUSTOMCAT_CATEGORIES = [];
 
 $.ajaxSetup({
     headers: {
@@ -12,95 +12,64 @@ $.ajaxSetup({
 });
 
 $.ajax({
-    url : "{{url('/print-providers/dreamship/categories')}}",
+    url : "{{url('/print-providers/customcat/categories')}}",
     type: 'POST',
     data: {},
     async: false,
     success : function(res) {
-        DREAMSHIP_CATEGORIES = res.data.data.reduce((acc, item) => {
-            const subItems = item.sub_categories.reduce((subAcc, subItem) => {
-                return [...subAcc, {...subItem, parentName: item.name}]
-            }, [])
-
-            return [...acc, ...subItems];
-        },[]);
+        CUSTOMCAT_CATEGORIES = res.data;
     },
     error: function(err) {
-        alert( "dreamship error" );
+        alert( "customcat error" );
     }
 })
 
 $(document).ready(function() {
-    var $dreamshipSelects = $('select[name$=product_id].dreamship').empty()
-    $dreamshipSelects.append(`<option value=0>-- choose product --</option>`)
-    DREAMSHIP_CATEGORIES.forEach(element => {
-        $dreamshipSelects.append(`<option value="${element.id}">${element.parentName} &gt; ${element.name}</option>`)
+    var $customcatSelects = $('select[name$=product_id].customcat').empty()
+    $customcatSelects.append(`<option value=0>-- choose product --</option>`)
+    CUSTOMCAT_CATEGORIES.forEach(element => {
+        $customcatSelects.append(`<option value="${element.catalog_product_id}">${element.product_name}</option>`)
     });
 
-    $dreamshipSelects.on('change', function() {
+    $customcatSelects.on('change', function() {
         const categoryId = this.value
         const selectName = $(this).attr('name')
         const orderItemId = selectName.split('_')[0]
-        const $itemDom = $(`select[name$=${orderItemId}_item_id].dreamship`).empty()
+        const $colorDom = $(`select[name$=${orderItemId}_color_id].customcat`).empty()
             .append(`<option value="0">-- loading --</option>`);
 
-        $.ajax({
-            url : ROOT_PATH + "/print-providers/dreamship/categories/"+ categoryId +"/items",
-            type: 'POST',
-            data: {},
-            async: true,
-            success : function(res) {
-                const items = res.data.data.reduce((acc, item) => {
-                    return [...acc, {id: item.id, name: item.name}];
-                },[]);
+        const category = CUSTOMCAT_CATEGORIES.find(item => item.catalog_product_id == categoryId);
 
-                $itemDom.empty();
-                items.forEach(element => {
-                    $itemDom.append(`<option value="${element.id}">${element.name}</option>`);
-                });
+        $colorDom.empty();
+        category.product_colors.forEach(element => {
+            $colorDom.append(`<option value="${element.product_color_id}">${element.color}</option>`);
+        });
 
-                $itemDom.trigger('change');
-            },
-            error: function(err) {
-                alert( "error" );
-            }
-        })
+        $colorDom.trigger('change');
     })
 
-    $('select[name$=item_id].dreamship').on('change', function() {
-        const rootPath = "{{url('')}}";
-        const itemId = this.value
+    $('select[name$=color_id].customcat').on('change', function() {
+        const colorId = this.value
         const selectName = $(this).attr('name')
         const orderItemId = selectName.split('_')[0]
-        const $varianDom = $(`select[name$=${orderItemId}_variant_id].dreamship`).empty()
+        const categoryId = $(`select[name=${orderItemId}_product_id].customcat`).val();
+        const $sizeDom = $(`select[name$=${orderItemId}_sku_id].customcat`).empty()
             .append(`<option value="0">-- loading --</option>`);
 
-        $.ajax({
-            url : ROOT_PATH + "/print-providers/dreamship/items/" + itemId,
-            type: 'POST',
-            data: {},
-            async: true,
-            success : function(res) {
-                const variants = res.data.item_variants.reduce((acc, item) => {
-                    return [...acc, {...item}];
-                },[]);
+        const category = CUSTOMCAT_CATEGORIES.find(item => item.catalog_product_id == categoryId);
+        const color = category.product_colors.find(item => item.product_color_id == colorId)
 
-                $varianDom.empty();
-                variants.forEach(element => {
-                    $varianDom.append(`<option ${element.availability === 'in_stock' ? '' : 'disabled="disabled"'} value="${element.id}">${element.name}</option>`);
-                });
-            },
-            error: function(err) {
-                alert( "error" );
-            }
-        })
+        $sizeDom.empty();
+        color.skus.forEach(element => {
+            $sizeDom.append(`<option ${element.in_stock >= 1 ? '' : 'disabled="disabled"'} value="${element.catalog_sku_id}">${element.size}</option>`);
+        });
     })
 });
 
-function submitDreamshipForm() {
+function submitCustomCatForm() {
     var emptyDesigns = {};
 
-    for (const element of $('#dreamshipForm').serializeArray()) {
+    for (const element of $('#customCatForm').serializeArray()) {
         var id = element.name.split('_')[0]
 
         if (!element.value) {
@@ -120,7 +89,7 @@ function submitDreamshipForm() {
         return;
     }
 
-    var formdata = $('#dreamshipForm').serializeArray().reduce((total, cur) => {
+    var formdata = $('#customCatForm').serializeArray().reduce((total, cur) => {
         var itemId = cur.name.split('_')[0]
         var nameKey = cur.name.split('_').slice(1).join('_')
 
@@ -141,31 +110,24 @@ function submitDreamshipForm() {
     console.log('processedFormdata=', processedFormdata)
 
     const postdata = {
-        address: {
-          first_name: "{{$order->full_name}}",
-          last_name: "",
-          street1: "{{$order->address_1}}",
-          street2: "{{$order->address_2}}",
-          city: "{{$order->city}}",
-          state: "{{$order->state}}",
-          country: "US",
-          zip: "{{$order->zip_code}}"
-        },
-        line_items: processedFormdata.map(item => {
-            const areas = [];
-
-            if (item.design_img_url) {
-                areas.push({key: "front", url: item.design_img_url, position: "top_center", resize: "fit"})
-            }
-
-            if (item.design_img_url_2) {
-                areas.push({key: "back", url: item.design_img_url_2, position: "top_center", resize: "fit"})
-            }
-
+        shipping_first_name: "{{$order->full_name}}",
+        shipping_last_name: "{{$order->full_name}}",
+        shipping_address1: "{{$order->address_1}}",
+        shipping_address2: "{{$order->address_2}}",
+        shipping_city: "{{$order->city}}",
+        shipping_state: "{{$order->state}}",
+        shipping_country: "US",
+        shipping_zip: "{{$order->zip_code}}",
+        shipping_email: "no-email@customcat.com",
+        shipping_phone: "555-555-5555",
+        shipping_method: "Economy",
+        sandbox: "1",
+        items: processedFormdata.map(item => {
             return {
-               print_areas: areas,
-               quantity: +item.quantity,
-               item_variant: +item.variant_id
+               catalog_sku: +item.sku_id,
+               ...(item.design_img_url && {design_url: item.design_img_url}),
+               ...(item.design_img_url_2 && {design_url_back: item.design_img_url_2}),
+               quantity: +item.quantity
             }
         }),
     }
@@ -173,7 +135,7 @@ function submitDreamshipForm() {
     console.log('----------------[data]', postdata)
 
     $.ajax({
-        url : "{{url('/print-providers/dreamship/create')}}",
+        url : "{{url('/print-providers/customcat/create')}}",
         type: 'POST',
         data: {order_id: "{{$order->id}}", postdata: postdata, order_type: 1},
         async: true,
@@ -194,12 +156,12 @@ function submitDreamshipForm() {
     })
 }
 
-// END dreamship
+// END customcat
 // ///////////////////////////////////////////////////////
 </script>
 
-<div class="tab-pane" id="dreamship" role="tabpanel" aria-labelledby="dreamship-tab">
-    <form id='dreamshipForm'>
+<div class="tab-pane" id="customcat" role="tabpanel" aria-labelledby="customcat-tab">
+    <form id='customCatForm'>
         <h4 style="padding-top:10px">Order Id: #{{$order->amz_order_id}}  @if($order->note) - Note: <b>{{$order->note}}</b> @endif</h4>
         <table class="table table-borderless table-hover">
             @foreach($orderItems as $item)
@@ -218,43 +180,43 @@ function submitDreamshipForm() {
                         <div class="col-3">
                             <label class="text-danger">Products</label>
                             <div>
-                                <select class="dreamship js-example-basic-single" style="width: 100%" name="{{$item->id}}_product_id">
+                                <select class="customcat js-example-basic-single" style="width: 100%" name="{{$item->id}}_product_id">
                                     <option value="0">-- loading --</option>
                                 </select>
                             </div>
                         </div>
                         <div class="col-3">
-                            <label class="text-danger">Items</label>
+                            <label class="text-danger">Colors</label>
                             <div class="">
-                                <select class="dreamship js-example-basic-single" style="width: 100%" name="{{$item->id}}_item_id">
+                                <select class="customcat js-example-basic-single" style="width: 100%" name="{{$item->id}}_color_id">
                                     <option value="0">-- loading --</option>
                                 </select>
                             </div>
                         </div>
                         <div class="col-3">
-                            <label class="text-danger">Variants of a Items</label>
+                            <label class="text-danger">Sizes</label>
                             <div class="">
-                                <select class="dreamship form-control" style="width: 100%" name="{{$item->id}}_variant_id">
+                                <select class="customcat form-control" style="width: 100%" name="{{$item->id}}_sku_id">
                                     <option value="0">-- loading --</option>
                                 </select>
                             </div>
                         </div>
                         <div class="col-3">
                             <label class="text-danger">Design ID (FRONT SIDE)</label>
-                            <input type="number" class="form-control" name="{{$item->id}}_design_id" provider="dreamship" placeholder="">
-                            <input type="hidden" class="form-control" name="{{$item->id}}_design_img_url" provider="dreamship">
-                            <input type="hidden" name="{{$item->id}}_quantity" provider="dreamship" value="{{$item->quantity}}">
+                            <input type="number" class="form-control" name="{{$item->id}}_design_id" provider="customcat" placeholder="">
+                            <input type="hidden" class="form-control" name="{{$item->id}}_design_img_url" provider="customcat">
+                            <input type="hidden" name="{{$item->id}}_quantity" provider="customcat" value="{{$item->quantity}}">
                             <div>
-                                <img class="{{$item->id}}_design_img" provider="dreamship" src='' alt='' style='width: 100%; padding-top: 5px' />
+                                <img class="{{$item->id}}_design_img" provider="customcat" src='' alt='' style='width: 100%; padding-top: 5px' />
                             </div>
                         </div>
                         <div class="col-9"></div>
                         <div class="col-3">
                             <label class="text-danger">Design ID (BACK SIDE)</label>
-                            <input type="number" class="form-control" name="{{$item->id}}_design_id_2" provider="dreamship" placeholder="">
-                            <input type="hidden" class="form-control" name="{{$item->id}}_design_img_url_2" provider="dreamship">
+                            <input type="number" class="form-control" name="{{$item->id}}_design_id_2" provider="customcat" placeholder="">
+                            <input type="hidden" class="form-control" name="{{$item->id}}_design_img_url_2" provider="customcat">
                             <div>
-                                <img class="{{$item->id}}_design_img_2" provider="dreamship" src='' alt='' style='width: 100%; padding-top: 5px' />
+                                <img class="{{$item->id}}_design_img_2" provider="customcat" src='' alt='' style='width: 100%; padding-top: 5px' />
                             </div>
                         </div>
 
@@ -265,7 +227,7 @@ function submitDreamshipForm() {
         </table>
         <div class="row" style="padding-top:20px">
             <div class="col">
-                <button type="button" id='gearSubmitBtn' class="btn btn-primary col-12 submit-button" onclick="submitDreamshipForm()" provider="dreamship">Submit Dreamship Order</button>
+                <button type="button" id='gearSubmitBtn' class="btn btn-primary col-12 submit-button" onclick="submitCustomCatForm()" provider="customcat">Submit Dreamship Order</button>
                 <pre id='dreamshipPostData'></pre>
             </div>
         </div>

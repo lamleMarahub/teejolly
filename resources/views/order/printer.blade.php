@@ -129,7 +129,7 @@ $(document).ready(function(){
             },
             async: true,
             success : function(res) {
-                updateVariantsList(itemId, res.data.variants, true)
+                // updateVariantsList(itemId, res.data.variants, true)
             },
             error: function(err) {
                 alert( "error" );
@@ -670,6 +670,9 @@ function submitPrintHighForm() {
         <li class="nav-item" role="presentation">
             <a class="nav-link" id="dreamshipTab" data-toggle="tab" href="#dreamship" role="tab" aria-controls="dreamship" aria-selected="false">4. Dreamship</a>
         </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="customcatTab" data-toggle="tab" href="#customcat" role="tab" aria-controls="customcat" aria-selected="false">5. CustomCat</a>
+        </li>
     </ul>
     <div class="tab-content">
         <div class="tab-pane active" id="printify" role="tabpanel" aria-labelledby="printify-tab">
@@ -903,6 +906,7 @@ function submitPrintHighForm() {
         </div>
 
         @include('order.dreamship')
+        @include('order.customcat')
 
     </div>
 
