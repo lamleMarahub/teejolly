@@ -673,6 +673,9 @@ function submitPrintHighForm() {
         <li class="nav-item" role="presentation">
             <a class="nav-link" id="customcatTab" data-toggle="tab" href="#customcat" role="tab" aria-controls="customcat" aria-selected="false">5. CustomCat</a>
         </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="teezilyTab" data-toggle="tab" href="#teezily" role="tab" aria-controls="teezily" aria-selected="false">6. Teezily</a>
+        </li>
     </ul>
     <div class="tab-content">
         <div class="tab-pane active" id="printify" role="tabpanel" aria-labelledby="printify-tab">
@@ -907,6 +910,7 @@ function submitPrintHighForm() {
 
         @include('order.dreamship')
         @include('order.customcat')
+        @include('order.teezily')
 
     </div>
 

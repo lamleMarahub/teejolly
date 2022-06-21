@@ -17,6 +17,7 @@ class PrintProviderController extends Controller
     protected $pagesize;
     protected $DREAMSHIP_TOKEN = '2b712060b88de3f9faeb53968a27a40c33020cd5';
     protected $CUSTOMCAT_API_KEY = '57C11845-0A7E-FEE7-5FC8312B727456D4';
+    protected $TEEZILY_API_KEY = 'Bearer 7cfa456c-445f-447f-953c-e6d9d365ec93';
     protected $CACHE_TTL_SECOND = 86400; // 1d
 
     public function __construct()
@@ -501,6 +502,128 @@ class PrintProviderController extends Controller
         ]);
     }
     // End CustomCat
+
+    // Teezily
+    public function getTeezilyCategories()
+    {
+        $endpoint = 'https://plus.teezily.com/api/v2/catalog/products?limit=100';
+
+        if (Cache::has($endpoint)) {
+            $cache_value = Cache::get($endpoint);
+            return response()->json([
+                'success' => 1,
+                'message' => 'getTeezilyCategories in cache',
+                'data' => $cache_value
+            ]);
+        }
+
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => $endpoint,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "GET",
+        CURLOPT_HTTPHEADER => array(
+            "Content-Type: application/json",
+            "Authorization: " . $this->TEEZILY_API_KEY
+        ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+        $obj =  json_decode($response, true);
+
+        Cache::put($endpoint, $obj, $this->CACHE_TTL_SECOND);
+
+        return response()->json([
+            'success' => 1,
+            'message' => 'getTeezilyCategories',
+            'data' => $obj
+        ]);
+    }
+
+    public function createTeezilyOrder(Request $request)
+    {
+        $result = [];
+
+        if(!Auth::user()->isAdmin()) return response()->json([
+            'success' => 0,
+            'message' => 'not permission - contact admin',
+            'data' => $result,
+        ]);
+
+        if(!$request->has('order_type')) return response()->json([
+            'success' => 0,
+            'message' => 'order_type',
+            'data' => $result
+        ]);
+
+        if($request->get('order_type') == 1){
+            $order = Order::find($request->get('order_id'));
+        }elseif($request->get('order_type') == 2){
+            $order = EtsyOrder::find($request->get('order_id'));
+        }else{
+            return response()->json([
+                'success' => 0,
+                'message' => 'order_type',
+                'data' => $result
+            ]);
+        }
+
+        if(!$order || $order->status != 0) return response()->json([
+            'success' => 0,
+            'message' => "this order is already printed",
+            'data' =>  $result,
+        ]);
+
+        $post_data = $request->get('postdata');
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://plus.teezily.com/api/v2/orders',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => json_encode($post_data),
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: application/json',
+                "Authorization: " . $this->TEEZILY_API_KEY
+            ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+
+        $result =  json_decode($response,true);
+
+        if (array_key_exists('errors', $result)) {
+            return response()->json([
+                'success' => 0,
+                'message' => $result['errors'],
+                'data' => $result
+            ]);
+        }
+
+        $order->fulfillment_id = $result['id'];
+        $order->fulfillment_by = 'customCat';
+        $order->status = 1;
+        $order->save();
+
+        return response()->json([
+            'success' => 1,
+            'message' => 'success with Teezily id=' . $result['id'],
+            'data' => $result,
+        ]);
+    }
+    // End Teezily
 
     public function createGearmentOrder(Request $request)
     {
